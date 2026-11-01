@@ -740,7 +740,6 @@
     <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transform transition-all duration-300 translate-y-20 opacity-0 z-[60]"></div>
 
     <script>
-        // REEMPLAZAR ESTA URL CON TU URL DESPLEGADA DE GOOGLE APPS SCRIPT
         var API_URL = "https://script.google.com/macros/s/AKfycbxiIsgcTMwLwPSEHJVcGF8eyJp_DdojUc6XyENN-e_n634JwqF1ESmsVp5ReuppyCwt7A/exec";
 
         var products = [];
@@ -1288,6 +1287,14 @@
             var tbody = document.getElementById('ord-items-body');
             var rowId = 'ord-row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
             
+            var targetStatus = (itemData && itemData.ESTATUS) ? String(itemData.ESTATUS).trim() : 'Solicitado';
+            
+            var statuses = ['Solicitado', 'Facturado', 'Embarcado', 'En puerto', 'Nacionalización', 'Despacho', 'Entregado', 'En inventario'];
+            var statusOptionsHtml = statuses.map(function(st) {
+                var selected = (st.toLowerCase() === targetStatus.toLowerCase()) ? 'selected' : '';
+                return '<option value="' + st + '" ' + selected + '>' + st + '</option>';
+            }).join('');
+
             var tr = document.createElement('tr');
             tr.id = rowId;
             tr.className = 'border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition';
@@ -1320,14 +1327,7 @@
                 '</td>' +
                 '<td class="p-2">' +
                     '<select class="ord-row-estatus w-full px-2 py-1 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-white font-semibold">' +
-                        '<option value="Solicitado">Solicitado</option>' +
-                        '<option value="Facturado">Facturado</option>' +
-                        '<option value="Embarcado">Embarcado</option>' +
-                        '<option value="En puerto">En puerto</option>' +
-                        '<option value="Nacionalización">Nacionalización</option>' +
-                        '<option value="Despacho">Despacho</option>' +
-                        '<option value="Entregado">Entregado</option>' +
-                        '<option value="En inventario">En inventario</option>' +
+                        statusOptionsHtml +
                     '</select>' +
                 '</td>' +
                 '<td class="p-2 text-center">' +
@@ -1348,9 +1348,7 @@
                 tr.querySelector('.ord-row-cant-embarcada').value = itemData.CANTIDAD_EMBARCADA || 0;
                 
                 var estatusSelect = tr.querySelector('.ord-row-estatus');
-                if (itemData.ESTATUS) {
-                    estatusSelect.value = itemData.ESTATUS;
-                }
+                estatusSelect.value = targetStatus;
                 
                 calculateRowPending(rowId);
             } else {
