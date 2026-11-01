@@ -101,15 +101,16 @@ function getSheet(sheetName, headers) {
 function rowToObject(headers, row) {
   const obj = {};
   headers.forEach((header, index) => {
+    let cleanHeader = String(header).trim();
     let value = row[index];
-    if (header === 'PRECIO COMPRA ($)' || header === 'PRECIO VENTA ($)' || header === 'PRECIO_COMPRA') {
+    if (cleanHeader === 'PRECIO COMPRA ($)' || cleanHeader === 'PRECIO VENTA ($)' || cleanHeader === 'PRECIO_COMPRA') {
       value = parseFloat(value) || 0;
-    } else if (header === 'STOCK' || header === 'CANTIDAD' || header === 'STOCK ANTERIOR' || header === 'STOCK NUEVO' || header === 'CANTIDAD_PEDIDO' || header === 'CANTIDAD_EMBARCADA' || header === 'CANTIDAD_PENDIENTE') {
+    } else if (cleanHeader === 'STOCK' || cleanHeader === 'CANTIDAD' || cleanHeader === 'STOCK ANTERIOR' || cleanHeader === 'STOCK NUEVO' || cleanHeader === 'CANTIDAD_PEDIDO' || cleanHeader === 'CANTIDAD_EMBARCADA' || cleanHeader === 'CANTIDAD_PENDIENTE') {
       value = parseInt(value, 10) || 0;
     } else if (value instanceof Date) {
       value = value.toISOString();
     }
-    obj[header] = value !== undefined && value !== null ? value : '';
+    obj[cleanHeader] = value !== undefined && value !== null ? String(value).trim() : '';
   });
   return obj;
 }
@@ -513,11 +514,12 @@ function saveBatchOrders(payload) {
 
     const sheet = getSheet(SHEET_ORDERS, ORDERS_HEADERS);
     const data = sheet.getDataRange().getValues();
-    const idIndex = data[0].indexOf('ID');
+    const headers = data[0].map(h => String(h).trim());
+    const idIndex = headers.indexOf('ID');
 
-    if (payload.batchId) {
+    if (payload.batchId && idIndex !== -1) {
       for (let i = data.length - 1; i >= 1; i--) {
-        if (String(data[i][idIndex]) === String(payload.batchId)) {
+        if (String(data[i][idIndex]).trim() === String(payload.batchId).trim()) {
           sheet.deleteRow(i + 1);
         }
       }
@@ -548,12 +550,12 @@ function saveBatchOrders(payload) {
         'ESTATUS': item.estatus || 'Solicitado'
       };
 
-      const row = ORDERS_HEADERS.map(header => orderObj[header] !== undefined ? orderObj[header] : '');
+      const row = headers.map(header => orderObj[header] !== undefined ? orderObj[header] : '');
       newRows.push(row);
     });
 
     if (newRows.length > 0) {
-      sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, ORDERS_HEADERS.length).setValues(newRows);
+      sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, headers.length).setValues(newRows);
     }
 
     return { success: true, message: `Se registraron ${newRows.length} ítem(s) para el pedido #${payload.numPedido}` };
@@ -567,13 +569,16 @@ function deleteOrder(id) {
   try {
     const sheet = getSheet(SHEET_ORDERS, ORDERS_HEADERS);
     const data = sheet.getDataRange().getValues();
-    const idIndex = data[0].indexOf('ID');
+    const headers = data[0].map(h => String(h).trim());
+    const idIndex = headers.indexOf('ID');
     let count = 0;
     
-    for (let i = data.length - 1; i >= 1; i--) {
-      if (String(data[i][idIndex]) === String(id)) {
-        sheet.deleteRow(i + 1);
-        count++;
+    if (idIndex !== -1) {
+      for (let i = data.length - 1; i >= 1; i--) {
+        if (String(data[i][idIndex]).trim() === String(id).trim()) {
+          sheet.deleteRow(i + 1);
+          count++;
+        }
       }
     }
 
