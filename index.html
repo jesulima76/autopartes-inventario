@@ -741,7 +741,7 @@
 
     <script>
         // REEMPLAZAR ESTA URL CON TU URL DESPLEGADA DE GOOGLE APPS SCRIPT
-        var API_URL = "https://script.google.com/macros/s/AKfycbxiIsgcTMwLwPSEHJVcGF8eyJp_DdojUc6XyENN-e_n634JwqF1ESmsVp5ReuppyCwt7A/exec";
+        var API_URL = "https://script.google.com/macros/s/TU_DEPLOYMENT_ID/exec";
 
         var products = [];
         var movements = [];
@@ -1320,7 +1320,7 @@
                 '</td>' +
                 '<td class="p-2">' +
                     '<select class="ord-row-estatus w-full px-2 py-1 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-white font-semibold">' +
-                        '<option value="Solicitado" selected>Solicitado</option>' +
+                        '<option value="Solicitado">Solicitado</option>' +
                         '<option value="Facturado">Facturado</option>' +
                         '<option value="Embarcado">Embarcado</option>' +
                         '<option value="En puerto">En puerto</option>' +
@@ -1346,7 +1346,12 @@
                 tr.querySelector('.ord-row-numfactura').value = itemData.NUM_FACTURA || '';
                 tr.querySelector('.ord-row-cant-pedido').value = itemData.CANTIDAD_PEDIDO || 1;
                 tr.querySelector('.ord-row-cant-embarcada').value = itemData.CANTIDAD_EMBARCADA || 0;
-                tr.querySelector('.ord-row-estatus').value = itemData.ESTATUS || 'Solicitado';
+                
+                var estatusSelect = tr.querySelector('.ord-row-estatus');
+                if (itemData.ESTATUS) {
+                    estatusSelect.value = itemData.ESTATUS;
+                }
+                
                 calculateRowPending(rowId);
             } else {
                 calculateRowPending(rowId);
@@ -1397,7 +1402,9 @@
                 allianceEl.textContent = prod.ALLIANCE || '-';
                 modeloEl.textContent = prod.MODELO || '-';
                 descEl.textContent = prod.DESCRIPCION || '-';
-                precioEl.value = prod['PRECIO COMPRA ($)'] || 0;
+                if (!precioEl.value || parseFloat(precioEl.value) === 0) {
+                    precioEl.value = prod['PRECIO COMPRA ($)'] || 0;
+                }
             }
         }
 
