@@ -22,6 +22,11 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
         .loader { border: 3px solid #e2e8f0; border-top: 3px solid #2563eb; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Estilos para el sistema de acordeón de facturas */
+        .product-block { border: 1px solid #e2e8f0; border-radius: 0.75rem; background: #fff; margin-bottom: 1rem; overflow: hidden; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .product-header { background: #f8fafc; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
+        .invoice-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 0.5rem; padding: 0.5rem 1rem; border-bottom: 1px solid #f1f5f9; align-items: center; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
@@ -428,7 +433,7 @@
         </div>
     </div>
 
-    <!-- Modal Pedido Internacional Avanzado con Desplegables -->
+    <!-- Modal Pedido Internacional Avanzado con Acordeón -->
     <div id="modal-order" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[94vh] flex flex-col fade-in">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
@@ -455,33 +460,18 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-bold text-slate-700 uppercase">Detalle de Renglones por Pedido / Factura</h3>
-                    <button type="button" onclick="addOrderRow()" class="bg-sky-50 text-sky-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 border border-sky-200">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Agregar Renglón al Pedido
+                <div class="flex items-center justify-between mt-4">
+                    <h3 class="text-xs font-bold text-slate-700 uppercase">Detalle de Productos y Facturas</h3>
+                    <button type="button" onclick="addProductBlock()" class="bg-sky-50 text-sky-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 border border-sky-200">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Agregar Producto al Pedido
                     </button>
                 </div>
 
-                <div class="border border-slate-200 rounded-xl overflow-x-auto">
-                    <table class="w-full text-left min-w-[950px]">
-                        <thead class="bg-slate-100 text-[10px] text-slate-600 font-bold uppercase">
-                            <tr>
-                                <th class="p-3 w-48">Código Producto *</th>
-                                <th class="p-3">Descripción</th>
-                                <th class="p-3 w-24">P. Compra ($)</th>
-                                <th class="p-3 w-28">N° Factura</th>
-                                <th class="p-3 w-20">Cant. Ped.</th>
-                                <th class="p-3 w-20">Cant. Emb.</th>
-                                <th class="p-3 w-20">Cant. Pend.</th>
-                                <th class="p-3 w-36">Estatus *</th>
-                                <th class="p-3 w-10 text-center"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="ord-items-body" class="divide-y divide-slate-100 bg-white"></tbody>
-                    </table>
+                <div id="ord-products-container" class="space-y-4">
+                    <!-- Aquí se inyectarán los bloques de productos -->
                 </div>
 
-                <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                <div class="pt-4 flex justify-end gap-2 border-t border-slate-100 mt-6">
                     <button type="button" onclick="closeModal('modal-order')" class="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-700">Cancelar</button>
                     <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-700 shadow-md shadow-sky-500/20">Guardar Pedido Completo</button>
                 </div>
@@ -702,6 +692,7 @@
             var tbody = document.getElementById('orders-table-body');
             if (!orders.length) { tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Sin pedidos.</td></tr>'; return; }
             
+            // Agrupamos por Pedido / Lote
             var grouped = {};
             orders.forEach(o => {
                 var key = o.ID || (o.NUM_PEDIDO + '_' + o.FECHA_PEDIDO);
@@ -714,13 +705,27 @@
                 var tEmb = batch.items.reduce((s, i) => s + (parseInt(i.CANTIDAD_EMBARCADA, 10) || 0), 0);
                 var tPend = Math.max(0, tPed - tEmb);
 
-                var itemsHtml = batch.items.map(i => {
-                    var cantPed = parseInt(i.CANTIDAD_PEDIDO, 10) || 0;
-                    var cantEmb = parseInt(i.CANTIDAD_EMBARCADA, 10) || 0;
-                    var cantPend = Math.max(0, cantPed - cantEmb);
-                    var facTag = i.NUM_FACTURA ? `<span class="bg-slate-100 px-1 py-0.5 rounded font-mono">Fac: ${i.NUM_FACTURA}</span>` : '<span class="text-slate-400">Sin Fac.</span>';
-                    return `<div class="text-[11px] border-b border-slate-100 py-1">
-                        <b>${i.CODIGO}</b> - ${i.DESCRIPCION || ''} ${facTag} | Ped: ${cantPed} | Emb: ${cantEmb} | Pend: <b class="text-amber-600">${cantPend}</b> | Estatus: <b>${i.ESTATUS || 'Solicitado'}</b>
+                // Agrupar los items del lote por código de producto para el resumen
+                var prodGroups = {};
+                batch.items.forEach(i => {
+                    if (!prodGroups[i.CODIGO]) prodGroups[i.CODIGO] = { desc: i.DESCRIPCION, ped: 0, emb: 0, facturas: [], estatus: i.ESTATUS };
+                    prodGroups[i.CODIGO].ped = i.CANTIDAD_PEDIDO; // El pedido es el mismo por producto
+                    prodGroups[i.CODIGO].emb += parseInt(i.CANTIDAD_EMBARCADA, 10) || 0;
+                    if (i.NUM_FACTURA) prodGroups[i.CODIGO].facturas.push(`${i.NUM_FACTURA} (${i.CANTIDAD_EMBARCADA})`);
+                });
+
+                var itemsHtml = Object.keys(prodGroups).map(code => {
+                    var g = prodGroups[code];
+                    var pend = Math.max(0, g.ped - g.emb);
+                    var facStr = g.facturas.length > 0 ? `Facturas: <span class="text-slate-600">${g.facturas.join(', ')}</span>` : '<span class="text-amber-500 font-bold">Sin facturas</span>';
+                    return `<div class="text-[11px] border-b border-slate-100 py-1.5 mb-1">
+                        <b class="text-blue-700">${code}</b> - ${g.desc || ''}<br>
+                        <div class="flex gap-2 mt-0.5">
+                            <span class="bg-slate-100 px-1.5 py-0.5 rounded font-semibold">Ped: ${g.ped}</span>
+                            <span class="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-semibold">Emb: ${g.emb}</span>
+                            <span class="bg-rose-50 text-rose-700 px-1.5 py-0.5 rounded font-bold">Pend: ${pend}</span>
+                            <span>${facStr}</span>
+                        </div>
                     </div>`;
                 }).join('');
 
@@ -734,11 +739,12 @@
             }).join('');
         }
 
-        // --- APERTURA Y EDICIÓN FIJA POR RENGLÓN ---
+        // --- LÓGICA DE ACORDEÓN PARA PEDIDOS (MASTER - DETAIL) ---
+
         function openOrderModal(batchId) {
             document.getElementById('form-order').reset();
             document.getElementById('ord-id').value = '';
-            document.getElementById('ord-items-body').innerHTML = '';
+            document.getElementById('ord-products-container').innerHTML = '';
             updateSupplierDatalist();
 
             if (batchId) {
@@ -749,131 +755,232 @@
                     document.getElementById('ord-FECHA_PEDIDO').value = first.FECHA_PEDIDO ? String(first.FECHA_PEDIDO).split('T')[0] : '';
                     document.getElementById('ord-NUM_PEDIDO').value = first.NUM_PEDIDO || '';
                     document.getElementById('ord-PROVEEDOR').value = first.PROVEEDOR || '';
-                    
-                    // Cargar individualmente CADA REGISTRO exactamente con sus propios valores guardados
-                    batchItems.forEach(item => addOrderRow(item));
+
+                    // Reconstruir los bloques de productos
+                    var prodGroups = {};
+                    batchItems.forEach(item => {
+                        if (!prodGroups[item.CODIGO]) {
+                            prodGroups[item.CODIGO] = {
+                                codigo: item.CODIGO,
+                                descripcion: item.DESCRIPCION,
+                                precioCompra: item.PRECIO_COMPRA,
+                                cantidadPedido: parseInt(item.CANTIDAD_PEDIDO, 10) || 0,
+                                facturas: []
+                            };
+                        }
+                        prodGroups[item.CODIGO].facturas.push({
+                            numFactura: item.NUM_FACTURA || '',
+                            cantidadEmbarcada: parseInt(item.CANTIDAD_EMBARCADA, 10) || 0,
+                            estatus: item.ESTATUS || 'Solicitado'
+                        });
+                    });
+
+                    Object.values(prodGroups).forEach(group => addProductBlock(group));
                 }
             } else {
                 document.getElementById('ord-FECHA_PEDIDO').value = new Date().toISOString().split('T')[0];
-                addOrderRow();
+                addProductBlock();
             }
 
             document.getElementById('modal-order').classList.remove('hidden');
             document.getElementById('modal-order').classList.add('flex');
         }
 
-        function calcRowPending(rowId) {
-            var tr = document.getElementById(rowId);
-            if (!tr) return;
-            var cPed = parseInt(tr.querySelector('.ord-row-cant-pedido').value, 10) || 0;
-            var cEmb = parseInt(tr.querySelector('.ord-row-cant-embarcada').value, 10) || 0;
-            tr.querySelector('.ord-row-cant-pendiente').value = Math.max(0, cPed - cEmb);
-        }
+        function addProductBlock(data = null) {
+            var container = document.getElementById('ord-products-container');
+            var blockId = 'prod-block-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+            
+            var productOptions = '<option value="">-- Seleccionar Producto --</option>' + 
+                products.map(p => `<option value="${p.CODIGO}">${p.CODIGO} - ${(p.DESCRIPCION || '').substring(0, 30)}</option>`).join('');
 
-        function addOrderRow(itemData) {
-            var tbody = document.getElementById('ord-items-body');
-            var rowId = 'ord-row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+            var blockHtml = `
+                <div class="product-block" id="${blockId}">
+                    <div class="product-header">
+                        <div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2 pr-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase">Código / Producto</label>
+                                <select class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white prod-code-select" onchange="onProductSelectChange(this, '${blockId}')">
+                                    ${productOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase">Precio Compra ($)</label>
+                                <input type="number" step="0.01" class="w-full p-1.5 border rounded-lg text-xs font-semibold prod-price" value="${data ? data.precioCompra : 0}">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase">Cant. Total Pedida</label>
+                                <input type="number" min="1" class="w-full p-1.5 border rounded-lg text-xs font-bold text-sky-700 prod-total-pedido" value="${data ? data.cantidadPedido : 1}" oninput="recalcProductBlock('${blockId}')">
+                            </div>
+                        </div>
+                        <button type="button" onclick="document.getElementById('${blockId}').remove()" class="text-rose-500 hover:bg-rose-50 p-2 rounded-lg font-bold">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="p-3 bg-white">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[11px] font-bold text-slate-600">Desglose de Facturas / Embarques</span>
+                            <div class="text-[11px] font-bold">Embarcado: <span class="text-emerald-600 sum-emb">0</span> / <span class="text-sky-600 sum-ped">${data ? data.cantidadPedido : 1}</span></div>
+                        </div>
+                        <div class="invoice-rows-container space-y-1 mb-2">
+                            <!-- Aquí van las facturas -->
+                        </div>
+                        <button type="button" onclick="addInvoiceRow('${blockId}')" class="text-sky-600 text-[11px] font-bold flex items-center gap-1 hover:underline">
+                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Agregar Factura / Embarque
+                        </button>
+                        <div class="text-[10px] text-rose-500 font-bold mt-1 hidden alert-excede">¡Alerta! La cantidad embarcada supera lo pedido.</div>
+                    </div>
+                </div>
+            `;
 
-            var productOptionsHtml = '<option value="">-- Seleccionar --</option>' + 
-                products.map(function(p) {
-                    return `<option value="${p.CODIGO}">${p.CODIGO} - ${(p.DESCRIPCION || '').substring(0, 30)}</option>`;
-                }).join('');
-
-            var tr = document.createElement('tr');
-            tr.id = rowId;
-            tr.className = 'border-b border-slate-100 text-xs';
-            tr.innerHTML = `<td class="p-2">
-                <select required onchange="onOrderRowProductChange(this, '${rowId}')" class="ord-row-codigo w-full p-1 border rounded bg-white font-bold">
-                    ${productOptionsHtml}
-                </select>
-            </td>
-            <td class="p-2">
-                <input type="text" placeholder="Descripción" value="${itemData ? (itemData.DESCRIPCION || '') : ''}" class="ord-row-descripcion w-full p-1 border rounded">
-            </td>
-            <td class="p-2">
-                <input type="number" step="0.01" value="${itemData ? (itemData.PRECIO_COMPRA || itemData['PRECIO COMPRA ($)'] || 0) : 0}" class="ord-row-precio w-full p-1 border rounded font-semibold">
-            </td>
-            <td class="p-2">
-                <input type="text" placeholder="N° Factura" value="${itemData ? (itemData.NUM_FACTURA || '') : ''}" class="ord-row-numfactura w-full p-1 border rounded font-semibold">
-            </td>
-            <td class="p-2">
-                <input type="number" min="1" value="${itemData ? (itemData.CANTIDAD_PEDIDO || 1) : 1}" oninput="calcRowPending('${rowId}')" class="ord-row-cant-pedido w-full p-1 border rounded font-bold text-sky-700">
-            </td>
-            <td class="p-2">
-                <input type="number" min="0" value="${itemData ? (itemData.CANTIDAD_EMBARCADA || 0) : 0}" oninput="calcRowPending('${rowId}')" class="ord-row-cant-embarcada w-full p-1 border rounded font-bold text-emerald-700">
-            </td>
-            <td class="p-2">
-                <input type="number" readonly value="0" class="ord-row-cant-pendiente w-full p-1 border rounded bg-slate-100 font-extrabold text-amber-700">
-            </td>
-            <td class="p-2">
-                <select class="ord-row-estatus w-full p-1 border rounded bg-white font-bold">
-                    <option value="Solicitado">Solicitado</option>
-                    <option value="Facturado">Facturado</option>
-                    <option value="Embarcado">Embarcado</option>
-                    <option value="En puerto">En puerto</option>
-                    <option value="Nacionalización">Nacionalización</option>
-                    <option value="Despacho">Despacho</option>
-                    <option value="Entregado">Entregado</option>
-                    <option value="En inventario">En inventario</option>
-                </select>
-            </td>
-            <td class="p-2 text-center">
-                <button type="button" onclick="removeOrderRow('${rowId}')" class="text-rose-500 font-bold p-1 hover:bg-rose-50 rounded">X</button>
-            </td>`;
-
-            tbody.appendChild(tr);
-
-            if (itemData) {
-                var selectEl = tr.querySelector('.ord-row-codigo');
-                if (selectEl) selectEl.value = itemData.CODIGO || '';
-                if (itemData.ESTATUS) tr.querySelector('.ord-row-estatus').value = itemData.ESTATUS;
+            container.insertAdjacentHTML('beforeend', blockHtml);
+            
+            var newBlock = document.getElementById(blockId);
+            var selectEl = newBlock.querySelector('.prod-code-select');
+            
+            if (data) {
+                selectEl.value = data.codigo;
+                // Cargar facturas existentes o una vacía si no hay
+                if (data.facturas && data.facturas.length > 0) {
+                    data.facturas.forEach(f => addInvoiceRow(blockId, f));
+                } else {
+                    addInvoiceRow(blockId);
+                }
+            } else {
+                addInvoiceRow(blockId);
             }
-
-            calcRowPending(rowId);
+            
+            recalcProductBlock(blockId);
+            if (window.lucide) lucide.createIcons();
         }
 
-        function onOrderRowProductChange(selectEl, rowId) {
+        function onProductSelectChange(selectEl, blockId) {
             var code = selectEl.value;
-            var tr = document.getElementById(rowId);
-            if (!tr || !code) return;
+            var block = document.getElementById(blockId);
+            if (!code) return;
 
-            var p = products.find(function(x) { return String(x.CODIGO).trim() === String(code).trim(); });
+            var p = products.find(x => String(x.CODIGO).trim() === String(code).trim());
             if (p) {
-                tr.querySelector('.ord-row-descripcion').value = p.DESCRIPCION || '';
-                var precioCompInput = tr.querySelector('.ord-row-precio');
-                if (!precioCompInput.value || parseFloat(precioCompInput.value) === 0) {
-                    precioCompInput.value = p['PRECIO COMPRA ($)'] || 0;
+                var priceInput = block.querySelector('.prod-price');
+                if (parseFloat(priceInput.value) === 0) {
+                    priceInput.value = p['PRECIO COMPRA ($)'] || 0;
                 }
             }
-            calcRowPending(rowId);
         }
 
-        function removeOrderRow(rowId) {
-            var el = document.getElementById(rowId);
-            if (el) el.remove();
+        function addInvoiceRow(blockId, data = null) {
+            var block = document.getElementById(blockId);
+            var container = block.querySelector('.invoice-rows-container');
+            var rowId = 'inv-row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+
+            var rowHtml = `
+                <div class="invoice-row text-xs" id="${rowId}">
+                    <input type="text" placeholder="N° Factura" class="p-1.5 border rounded-lg inv-factura" value="${data ? data.numFactura : ''}">
+                    <input type="number" min="0" placeholder="Cant. Emb." class="p-1.5 border rounded-lg font-bold text-emerald-700 inv-cant-emb" value="${data ? data.cantidadEmbarcada : 0}" oninput="recalcProductBlock('${blockId}')">
+                    <select class="p-1.5 border rounded-lg bg-white inv-estatus">
+                        <option value="Solicitado">Solicitado</option>
+                        <option value="Facturado">Facturado</option>
+                        <option value="Embarcado">Embarcado</option>
+                        <option value="En puerto">En puerto</option>
+                        <option value="Nacionalización">Nacionalización</option>
+                        <option value="Despacho">Despacho</option>
+                        <option value="Entregado">Entregado</option>
+                        <option value="En inventario">En inventario</option>
+                    </select>
+                    <div class="text-center font-bold text-amber-600 inv-pend">0</div>
+                    <button type="button" onclick="this.closest('.invoice-row').remove(); recalcProductBlock('${blockId}')" class="text-rose-400 hover:text-rose-600 font-bold px-1">X</button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHtml);
+            
+            if (data && data.estatus) {
+                document.getElementById(rowId).querySelector('.inv-estatus').value = data.estatus;
+            }
+        }
+
+        function recalcProductBlock(blockId) {
+            var block = document.getElementById(blockId);
+            if (!block) return;
+
+            var totalPedido = parseInt(block.querySelector('.prod-total-pedido').value, 10) || 0;
+            var rows = block.querySelectorAll('.invoice-row');
+            var sumEmbarcada = 0;
+
+            rows.forEach(tr => {
+                var cantEmb = parseInt(tr.querySelector('.inv-cant-emb').value, 10) || 0;
+                sumEmbarcada += cantEmb;
+                // La pendiente por factura se calcula individual (opcional, aquí mostramos 0 si ya se cubrió el total global)
+                tr.querySelector('.inv-pend').textContent = ''; 
+            });
+
+            block.querySelector('.sum-emb').textContent = sumEmbarcada;
+            block.querySelector('.sum-ped').textContent = totalPedido;
+
+            var alertEl = block.querySelector('.alert-excede');
+            if (sumEmbarcada > totalPedido) {
+                alertEl.classList.remove('hidden');
+                block.querySelector('.sum-emb').classList.add('text-rose-600');
+            } else {
+                alertEl.classList.add('hidden');
+                block.querySelector('.sum-emb').classList.remove('text-rose-600');
+            }
         }
 
         function saveOrder() {
-            var rows = document.querySelectorAll('#ord-items-body tr');
+            var blocks = document.querySelectorAll('#ord-products-container .product-block');
             var items = [];
-            rows.forEach(tr => {
-                var code = tr.querySelector('.ord-row-codigo').value;
-                if (code) {
-                    var cPed = parseInt(tr.querySelector('.ord-row-cant-pedido').value, 10) || 0;
-                    var cEmb = parseInt(tr.querySelector('.ord-row-cant-embarcada').value, 10) || 0;
+            var hasError = false;
+
+            blocks.forEach(block => {
+                var code = block.querySelector('.prod-code-select').value;
+                if (!code) { hasError = true; return; }
+
+                var desc = products.find(p => p.CODIGO === code)?.DESCRIPCION || '';
+                var precio = parseFloat(block.querySelector('.prod-price').value) || 0;
+                var cantTotalPedida = parseInt(block.querySelector('.prod-total-pedido').value, 10) || 0;
+                
+                var rows = block.querySelectorAll('.invoice-row');
+                var sumEmb = 0;
+                
+                // Recolectar facturas
+                var invoiceData = [];
+                rows.forEach(tr => {
+                    var fac = tr.querySelector('.inv-factura').value.trim();
+                    var emb = parseInt(tr.querySelector('.inv-cant-emb').value, 10) || 0;
+                    var est = tr.querySelector('.inv-estatus').value;
+                    sumEmb += emb;
+                    
+                    if (fac || emb > 0) {
+                        invoiceData.push({ numFactura: fac, cantidadEmbarcada: emb, estatus: est });
+                    }
+                });
+
+                if (sumEmb > cantTotalPedida) {
+                    showToast(`El producto ${code} tiene más cantidad embarcada que la pedida.`, 'error');
+                    hasError = true;
+                    return;
+                }
+
+                // Si no hay facturas puestas, guardamos una por defecto
+                if (invoiceData.length === 0) {
+                    invoiceData.push({ numFactura: '', cantidadEmbarcada: 0, estatus: 'Solicitado' });
+                }
+
+                // Aplanar los datos para el backend (cada factura es un renglón en Google Sheets)
+                invoiceData.forEach(inv => {
                     items.push({
                         codigo: code,
-                        descripcion: tr.querySelector('.ord-row-descripcion').value.trim(),
-                        precioCompra: parseFloat(tr.querySelector('.ord-row-precio').value) || 0,
-                        numFactura: tr.querySelector('.ord-row-numfactura').value.trim(),
-                        cantidadPedido: cPed,
-                        cantidadEmbarcada: cEmb,
-                        cantidadPendiente: Math.max(0, cPed - cEmb),
-                        estatus: tr.querySelector('.ord-row-estatus').value
+                        descripcion: desc,
+                        precioCompra: precio,
+                        cantidadPedido: cantTotalPedida, // Se repite en cada factura para mantener el registro
+                        numFactura: inv.numFactura,
+                        cantidadEmbarcada: inv.cantidadEmbarcada,
+                        cantidadPendiente: Math.max(0, cantTotalPedida - sumEmb), // Pendiente global del producto
+                        estatus: inv.estatus
                     });
-                }
+                });
             });
 
+            if (hasError) return;
             if (!items.length) { showToast('Agrega al menos un producto al pedido', 'error'); return; }
 
             var payload = {
