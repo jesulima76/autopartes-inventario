@@ -761,12 +761,62 @@
             document.getElementById('modal-order').classList.add('flex');
         }
 
+        // --- CÁLCULO ACUMULATIVO DE PENDIENTES POR NÚMERO DE PARTE ---
+        function calcAllPending() {
+            var rows = document.querySelectorAll('#ord-items-body tr');
+            var totalsByCode = {};
+
+            // 1. Sumar cantidades embarcadas e identificar la cantidad pedida máxima por código
+            rows.forEach(function(tr) {
+                var selectEl = tr.querySelector('.ord-row-codigo');
+                var code = selectEl ? selectEl.value : '';
+                if (!code) return;
+
+                var cPed = parseInt(tr.querySelector('.ord-row-cant-pedido').value, 10) || 0;
+                var cEmb = parseInt(tr.querySelector('.ord-row-cant-embarcada').value, 10) || 0;
+
+                if (!totalsByCode[code]) {
+                    totalsByCode[code] = {
+                        totalPedido: cPed,
+                        totalEmbarcado: 0
+                    };
+                } else {
+                    if (cPed > totalsByCode[code].totalPedido) {
+                        totalsByCode[code].totalPedido = cPed;
+                    }
+                }
+
+                totalsByCode[code].totalEmbarcado += cEmb;
+            });
+
+            // 2. Actualizar el saldo pendiente global en todas las filas de cada código
+            rows.forEach(function(tr) {
+                var selectEl = tr.querySelector('.ord-row-codigo');
+                var code = selectEl ? selectEl.value : '';
+                var inputPend = tr.querySelector('.ord-row-cant-pendiente');
+
+                if (code && totalsByCode[code]) {
+                    var globalPend = Math.max(0, totalsByCode[code].totalPedido - totalsByCode[code].totalEmbarcado);
+                    inputPend.value = globalPend;
+
+                    var inputPed = tr.querySelector('.ord-row-cant-pedido');
+                    if (inputPed && parseInt(inputPed.value, 10) !== totalsByCode[code].totalPedido) {
+                        inputPed.value = totalsByCode[code].totalPedido;
+                    }
+                } else if (inputPend) {
+                    inputPend.value = 0;
+                }
+            });
+        }
+
         function addOrderRow(itemData) {
             var tbody = document.getElementById('ord-items-body');
             var rowId = 'ord-row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
 
             var productOptionsHtml = '<option value="">-- Seleccionar --</option>' + 
-                products.map(p => `<option value="${p.CODIGO}">${p.CODIGO} - ${(p.DESCRIPCION || '').substring(0, 30)}</option>`).join('');
+                products.map(function(p) {
+                    return `<option value="${p.CODIGO}">${p.CODIGO} - ${(p.DESCRIPCION || '').substring(0, 30)}</option>`;
+                }).join('');
 
             var tr = document.createElement('tr');
             tr.id = rowId;
@@ -786,10 +836,10 @@
                 <input type="text" placeholder="N° Factura" value="${itemData ? (itemData.NUM_FACTURA || '') : ''}" class="ord-row-numfactura w-full p-1 border rounded font-semibold">
             </td>
             <td class="p-2">
-                <input type="number" min="1" value="${itemData ? (itemData.CANTIDAD_PEDIDO || 1) : 1}" oninput="calcRowPending('${rowId}')" class="ord-row-cant-pedido w-full p-1 border rounded font-bold text-sky-700">
+                <input type="number" min="1" value="${itemData ? (itemData.CANTIDAD_PEDIDO || 1) : 1}" oninput="calcAllPending()" class="ord-row-cant-pedido w-full p-1 border rounded font-bold text-sky-700">
             </td>
             <td class="p-2">
-                <input type="number" min="0" value="${itemData ? (itemData.CANTIDAD_EMBARCADA || 0) : 0}" oninput="calcRowPending('${rowId}')" class="ord-row-cant-embarcada w-full p-1 border rounded font-bold text-emerald-700">
+                <input type="number" min="0" value="${itemData ? (itemData.CANTIDAD_EMBARCADA || 0) : 0}" oninput="calcAllPending()" class="ord-row-cant-embarcada w-full p-1 border rounded font-bold text-emerald-700">
             </td>
             <td class="p-2">
                 <input type="number" readonly value="0" class="ord-row-cant-pendiente w-full p-1 border rounded bg-slate-100 font-extrabold text-amber-700">
@@ -814,11 +864,11 @@
 
             if (itemData) {
                 var selectEl = tr.querySelector('.ord-row-codigo');
-                selectEl.value = itemData.CODIGO || '';
+                if (selectEl) selectEl.value = itemData.CODIGO || '';
                 if (itemData.ESTATUS) tr.querySelector('.ord-row-estatus').value = itemData.ESTATUS;
             }
 
-            calcRowPending(rowId);
+            calcAllPending();
         }
 
         function onOrderRowProductChange(selectEl, rowId) {
@@ -826,7 +876,7 @@
             var tr = document.getElementById(rowId);
             if (!tr || !code) return;
 
-            var p = products.find(x => String(x.CODIGO).trim() === String(code).trim());
+            var p = products.find(function(x) { return String(x.CODIGO).trim() === String(code).trim(); });
             if (p) {
                 tr.querySelector('.ord-row-descripcion').value = p.DESCRIPCION || '';
                 var precioCompInput = tr.querySelector('.ord-row-precio');
@@ -834,19 +884,13 @@
                     precioCompInput.value = p['PRECIO COMPRA ($)'] || 0;
                 }
             }
-        }
-
-        function calcRowPending(rowId) {
-            var tr = document.getElementById(rowId);
-            if (!tr) return;
-            var cPed = parseInt(tr.querySelector('.ord-row-cant-pedido').value, 10) || 0;
-            var cEmb = parseInt(tr.querySelector('.ord-row-cant-embarcada').value, 10) || 0;
-            tr.querySelector('.ord-row-cant-pendiente').value = Math.max(0, cPed - cEmb);
+            calcAllPending();
         }
 
         function removeOrderRow(rowId) {
             var el = document.getElementById(rowId);
             if (el) el.remove();
+            calcAllPending();
         }
 
         function saveOrder() {
