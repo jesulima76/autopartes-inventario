@@ -274,6 +274,7 @@
                                 <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Código</th>
                                 <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Cantidad</th>
                                 <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Motivo / Doc</th>
+                                <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="movements-table-body" class="bg-white divide-y divide-slate-100"></tbody>
@@ -441,20 +442,20 @@
         </div>
     </div>
 
-    <!-- MODAL DE MOVIMIENTOS ACTUALIZADO (Múltiples Productos) -->
+    <!-- MODAL DE MOVIMIENTOS -->
     <div id="modal-movement" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col fade-in">
             <div class="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900">Registrar Movimiento de Inventario</h2>
+                    <h2 id="modal-movement-title" class="text-lg font-bold text-slate-900">Registrar Movimiento de Inventario</h2>
                     <p class="text-xs text-slate-500 mt-1">Agregue múltiples productos a la misma factura o documento.</p>
                 </div>
                 <button onclick="closeModal('modal-movement')" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             
             <form id="form-movement" onsubmit="event.preventDefault(); saveMovement();" class="p-6 space-y-6 overflow-y-auto flex-1 text-sm bg-slate-50/30">
+                <input type="hidden" id="mov-ROW-ID">
                 
-                <!-- Cabecera del Movimiento -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Tipo Movimiento <span class="text-rose-500">*</span></label>
@@ -474,8 +475,7 @@
                     </div>
                 </div>
 
-                <!-- Agregar Producto -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm" id="mov-add-section">
                     <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600"></i> Agregar Producto al Movimiento
                     </h3>
@@ -483,7 +483,6 @@
                         <div class="flex-1 w-full">
                             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Producto</label>
                             <select id="mov-add-CODIGO" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                                <!-- Opciones dinámicas -->
                             </select>
                         </div>
                         <div class="w-full sm:w-32">
@@ -496,7 +495,6 @@
                     </div>
                 </div>
 
-                <!-- Lista de Productos Agregados -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 border-b border-slate-200">
@@ -509,7 +507,6 @@
                             </tr>
                         </thead>
                         <tbody id="mov-items-body" class="divide-y divide-slate-100">
-                            <!-- Filas dinámicas -->
                         </tbody>
                         <tfoot id="mov-empty-state" class="bg-slate-50/50">
                             <tr>
@@ -525,7 +522,7 @@
                 <div class="pt-4 flex justify-end gap-3 border-t border-slate-200 mt-6">
                     <button type="button" onclick="closeModal('modal-movement')" class="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors">Cancelar</button>
                     <button type="submit" class="px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-2">
-                        <i data-lucide="save" class="w-4 h-4"></i> Registrar Movimiento
+                        <i data-lucide="save" class="w-4 h-4"></i> <span id="mov-btn-save-text">Registrar Movimiento</span>
                     </button>
                 </div>
             </form>
@@ -543,6 +540,7 @@
         var products = [], movements = [], clients = [], suppliers = [], orders = [];
         var stockChartInstance = null, topProductsChartInstance = null;
         var currentProductView = 'grid';
+        var isEditMovementMode = false;
 
         document.addEventListener('DOMContentLoaded', function() {
             if (window.lucide) lucide.createIcons();
@@ -731,16 +729,65 @@
             document.getElementById('modal-supplier').classList.add('flex');
         }
 
+        // === MOVIMIENTOS ===
         function openMovementModal() {
+            isEditMovementMode = false;
             document.getElementById('form-movement').reset();
+            document.getElementById('mov-ROW-ID').value = '';
             document.getElementById('mov-items-body').innerHTML = '';
             document.getElementById('mov-empty-state').classList.remove('hidden');
+            document.getElementById('mov-add-section').classList.remove('hidden');
+            document.getElementById('modal-movement-title').textContent = 'Registrar Movimiento de Inventario';
+            document.getElementById('mov-btn-save-text').textContent = 'Registrar Movimiento';
+            
             updateProductSelects();
             document.getElementById('modal-movement').classList.remove('hidden');
             document.getElementById('modal-movement').classList.add('flex');
         }
 
-        // === LÓGICA DE MOVIMIENTOS MÚLTIPLES ===
+        function openEditMovementModal(mov) {
+            isEditMovementMode = true;
+            document.getElementById('form-movement').reset();
+            document.getElementById('mov-ROW-ID').value = mov.ROW_ID;
+            document.getElementById('mov-TIPO').value = mov.TIPO;
+            document.getElementById('mov-DOCUMENTO').value = mov.DOCUMENTO || '';
+            document.getElementById('mov-MOTIVO').value = mov.MOTIVO || '';
+            
+            document.getElementById('modal-movement-title').textContent = 'Editar Movimiento de Inventario';
+            document.getElementById('mov-btn-save-text').textContent = 'Guardar Cambios';
+            
+            // En edición solo permitimos modificar este único producto
+            document.getElementById('mov-add-section').classList.add('hidden');
+            
+            var tbody = document.getElementById('mov-items-body');
+            var emptyState = document.getElementById('mov-empty-state');
+            emptyState.classList.add('hidden');
+            tbody.innerHTML = '';
+
+            var p = products.find(x => String(x.CODIGO).trim() === String(mov.CODIGO).trim());
+            var stockActual = p ? p.STOCK : 0;
+
+            var tr = document.createElement('tr');
+            tr.setAttribute('data-code', mov.CODIGO);
+            tr.className = 'hover:bg-slate-50 transition-colors';
+            tr.innerHTML = `
+                <td class="px-4 py-3 text-xs font-bold text-brand-700">${mov.CODIGO}</td>
+                <td class="px-4 py-3 text-xs text-slate-600">${mov.DESCRIPCION || ''}</td>
+                <td class="px-4 py-3 text-xs font-semibold">${stockActual}</td>
+                <td class="px-4 py-3">
+                    <input type="number" min="1" value="${mov.CANTIDAD}" class="mov-item-cant w-full px-2 py-1 border border-slate-200 rounded-md text-xs font-bold text-emerald-700 focus:ring-1 focus:ring-emerald-500 outline-none">
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <!-- No permitimos eliminar en modo edición -->
+                </td>
+            `;
+            tbody.appendChild(tr);
+            if (window.lucide) lucide.createIcons();
+
+            document.getElementById('modal-movement').classList.remove('hidden');
+            document.getElementById('modal-movement').classList.add('flex');
+        }
+
         function addMovementItem() {
             var code = document.getElementById('mov-add-CODIGO').value;
             var cant = parseInt(document.getElementById('mov-add-CANTIDAD').value, 10) || 1;
@@ -754,7 +801,6 @@
             var tbody = document.getElementById('mov-items-body');
             var emptyState = document.getElementById('mov-empty-state');
             
-            // Validar si ya existe para no duplicar
             var existingRow = tbody.querySelector(`tr[data-code="${code}"]`);
             if (existingRow) {
                 showToast('El producto ya está en la lista', 'error');
@@ -782,7 +828,6 @@
             tbody.appendChild(tr);
             if (window.lucide) lucide.createIcons();
             
-            // Limpiar inputs para el siguiente
             document.getElementById('mov-add-CANTIDAD').value = 1;
             document.getElementById('mov-add-CODIGO').value = '';
         }
@@ -802,6 +847,7 @@
             var tipo = document.getElementById('mov-TIPO').value;
             var motivo = document.getElementById('mov-MOTIVO').value.trim();
             var numFactura = document.getElementById('mov-DOCUMENTO').value.trim();
+            var rowId = document.getElementById('mov-ROW-ID').value;
             
             var rows = document.querySelectorAll('#mov-items-body tr');
             if (rows.length === 0) {
@@ -809,28 +855,61 @@
                 return;
             }
 
-            var items = [];
-            rows.forEach(tr => {
+            if (isEditMovementMode) {
+                // Modo Edición: Solo enviamos 1 item
+                var tr = rows[0];
                 var code = tr.getAttribute('data-code');
                 var cant = parseInt(tr.querySelector('.mov-item-cant').value, 10) || 1;
-                items.push({ codigo: code, cantidad: cant });
-            });
 
-            var payload = {
-                tipo: tipo,
-                motivo: motivo,
-                numFactura: numFactura,
-                items: items
-            };
+                var payload = {
+                    rowId: rowId,
+                    tipo: tipo,
+                    codigo: code,
+                    cantidad: cant,
+                    motivo: motivo,
+                    numFactura: numFactura
+                };
 
-            showLoading('orders-loading', true); // Reutilizamos loader
-            fetchAPI('registerBatchMovements', payload).then(res => {
-                showToast(res.message, 'success');
-                closeModal('modal-movement');
-                loadMovements();
-                // Recargar productos para actualizar stock si el usuario va al inventario
-                loadProductsDataSilent();
-            }).catch(e => { showToast(e.message, 'error'); showLoading('orders-loading', false); });
+                fetchAPI('updateMovement', payload).then(res => {
+                    showToast(res.message, 'success');
+                    closeModal('modal-movement');
+                    loadMovements();
+                    loadProductsDataSilent();
+                }).catch(e => showToast(e.message, 'error'));
+
+            } else {
+                // Modo Nuevo: Enviamos lote
+                var items = [];
+                rows.forEach(tr => {
+                    var code = tr.getAttribute('data-code');
+                    var cant = parseInt(tr.querySelector('.mov-item-cant').value, 10) || 1;
+                    items.push({ codigo: code, cantidad: cant });
+                });
+
+                var payload = {
+                    tipo: tipo,
+                    motivo: motivo,
+                    numFactura: numFactura,
+                    items: items
+                };
+
+                fetchAPI('registerBatchMovements', payload).then(res => {
+                    showToast(res.message, 'success');
+                    closeModal('modal-movement');
+                    loadMovements();
+                    loadProductsDataSilent();
+                }).catch(e => showToast(e.message, 'error'));
+            }
+        }
+
+        function deleteMovement(rowId) {
+            if (confirm('¿Estás seguro de eliminar este movimiento? El stock del producto será ajustado automáticamente para mantener el inventario correcto.')) {
+                fetchAPI('deleteMovement', rowId).then(res => {
+                    showToast(res.message, 'success');
+                    loadMovements();
+                    loadProductsDataSilent();
+                }).catch(e => showToast(e.message, 'error'));
+            }
         }
 
         // === GUARDAR CRUD ===
@@ -1359,7 +1438,7 @@
             }
         }
 
-        // === MOVIMIENTOS, CLIENTES Y PROVEEDORES ===
+        // === MOVIMIENTOS ===
         function loadMovements() { 
             fetchAPI('getMovements').then(d => { movements = d || []; renderMovements(); }).catch(e => showToast(e.message, 'error')); 
         }
@@ -1367,7 +1446,7 @@
         function renderMovements() {
             var tbody = document.getElementById('movements-table-body');
             if (!movements.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400"><i data-lucide="history" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i><p class="text-sm font-medium">No hay movimientos registrados</p></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="p-12 text-center text-slate-400"><i data-lucide="history" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i><p class="text-sm font-medium">No hay movimientos registrados</p></td></tr>';
                 if(window.lucide) lucide.createIcons();
                 return;
             }
@@ -1377,7 +1456,7 @@
                 var badgeClass = isEntrada ? 'bg-emerald-100 text-emerald-700' : (isSalida ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700');
                 var icon = isEntrada ? 'arrow-down-left' : (isSalida ? 'arrow-up-right' : 'refresh-cw');
                 
-                return `<tr class="hover:bg-slate-50/80 transition-colors">
+                return `<tr class="hover:bg-slate-50/80 transition-colors group">
                     <td class="px-6 py-4 text-xs font-medium text-slate-600">${formatDateForInput(m.FECHA) || '-'}</td>
                     <td class="px-6 py-4">
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider ${badgeClass}">
@@ -1386,12 +1465,26 @@
                     </td>
                     <td class="px-6 py-4 text-xs font-bold text-slate-800">${m.CODIGO}</td>
                     <td class="px-6 py-4 text-sm font-extrabold ${isEntrada ? 'text-emerald-600' : 'text-rose-600'}">${isEntrada ? '+' : (isSalida ? '-' : '')}${m.CANTIDAD}</td>
-                    <td class="px-6 py-4 text-xs text-slate-500">${m.MOTIVO || '-'}</td>
+                    <td class="px-6 py-4 text-xs text-slate-500">
+                        ${m.MOTIVO || '-'}
+                        ${m.DOCUMENTO ? `<br><span class="text-[10px] bg-slate-100 px-1 py-0.5 rounded font-mono">${m.DOCUMENTO}</span>` : ''}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick='openEditMovementModal(${JSON.stringify(m).replace(/'/g, "&#39;")})' class="text-brand-600 bg-brand-50 hover:bg-brand-100 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1" title="Editar">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="deleteMovement(${m.ROW_ID})" class="text-rose-500 bg-rose-50 hover:bg-rose-100 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </td>
                 </tr>`;
             }).join('');
             if(window.lucide) lucide.createIcons();
         }
 
+        // === CLIENTES ===
         function loadClients() { 
             fetchAPI('getClients').then(d => { clients = d || []; renderClients(); }).catch(e => showToast(e.message, 'error')); 
         }
@@ -1421,6 +1514,7 @@
             if(window.lucide) lucide.createIcons();
         }
 
+        // === PROVEEDORES ===
         function loadSuppliers() { 
             fetchAPI('getSuppliers').then(d => { suppliers = d || []; renderSuppliers(); }).catch(e => showToast(e.message, 'error')); 
         }
