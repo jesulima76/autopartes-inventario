@@ -492,7 +492,7 @@
     <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transform transition-all duration-300 translate-y-20 opacity-0 z-[60]"></div>
 
     <script>
-        var API_URL = "https://script.google.com/macros/s/AKfycbztnhDBux6s85vgs_uoF89zNZ9rz7NTTxiRoUArLotw-LK13tSar0hXCofKEn44XfyyFQ/exec";
+        var API_URL = "https://script.google.com/macros/s/AKfycbxiIsgcTMwLwPSEHJVcGF8eyJp_DdojUc6XyENN-e_n634JwqF1ESmsVp5ReuppyCwt7A/exec";
 
         var products = [], movements = [], clients = [], suppliers = [], orders = [];
         var stockChartInstance = null, topProductsChartInstance = null;
@@ -568,7 +568,6 @@
             }
         }
 
-        // --- APERTURA DE MODALES DEL HEADER ---
         function openProductModal(code = null) {
             document.getElementById('form-product').reset();
             document.getElementById('modal-product-title').textContent = code ? 'Editar Producto' : 'Nuevo Producto';
@@ -629,7 +628,6 @@
             document.getElementById('modal-movement').classList.add('flex');
         }
 
-        // --- GUARDADO DE FORMULARIOS ---
         function saveProduct() {
             var payload = {
                 'CODIGO': document.getElementById('prod-CODIGO').value.trim(),
@@ -736,6 +734,7 @@
             }).join('');
         }
 
+        // --- APERTURA Y EDICIÓN FIJA POR RENGLÓN ---
         function openOrderModal(batchId) {
             document.getElementById('form-order').reset();
             document.getElementById('ord-id').value = '';
@@ -750,6 +749,8 @@
                     document.getElementById('ord-FECHA_PEDIDO').value = first.FECHA_PEDIDO ? String(first.FECHA_PEDIDO).split('T')[0] : '';
                     document.getElementById('ord-NUM_PEDIDO').value = first.NUM_PEDIDO || '';
                     document.getElementById('ord-PROVEEDOR').value = first.PROVEEDOR || '';
+                    
+                    // Cargar individualmente CADA REGISTRO exactamente con sus propios valores guardados
                     batchItems.forEach(item => addOrderRow(item));
                 }
             } else {
@@ -761,7 +762,6 @@
             document.getElementById('modal-order').classList.add('flex');
         }
 
-        // --- CÁLCULO INDEPENDIENTE DIRECCIÓN REGISTRO POR FILA ---
         function calcRowPending(rowId) {
             var tr = document.getElementById(rowId);
             if (!tr) return;
@@ -791,7 +791,7 @@
                 <input type="text" placeholder="Descripción" value="${itemData ? (itemData.DESCRIPCION || '') : ''}" class="ord-row-descripcion w-full p-1 border rounded">
             </td>
             <td class="p-2">
-                <input type="number" step="0.01" value="${itemData ? (itemData.PRECIO_COMPRA || 0) : 0}" class="ord-row-precio w-full p-1 border rounded font-semibold">
+                <input type="number" step="0.01" value="${itemData ? (itemData.PRECIO_COMPRA || itemData['PRECIO COMPRA ($)'] || 0) : 0}" class="ord-row-precio w-full p-1 border rounded font-semibold">
             </td>
             <td class="p-2">
                 <input type="text" placeholder="N° Factura" value="${itemData ? (itemData.NUM_FACTURA || '') : ''}" class="ord-row-numfactura w-full p-1 border rounded font-semibold">
