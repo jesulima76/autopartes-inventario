@@ -1,6 +1,6 @@
 /**
  * AutoPartes Inventario - Backend API con Google Sheets
- * Archivo: Código.gs (VERSIÓN PROFESIONAL)
+ * Archivo: Código.gs (VERSIÓN PROFESIONAL - CON FIX DE FECHAS)
  */
 
 const SHEET_PRODUCTS = 'Productos';
@@ -34,6 +34,20 @@ const ORDERS_HEADERS = [
   'DESCRIPCION', 'MODELO', 'PRECIO_COMPRA', 'CANTIDAD_PEDIDO', 
   'NUM_FACTURA', 'CANTIDAD_EMBARCADA', 'CANTIDAD_PENDIENTE', 'ESTATUS'
 ];
+
+// === UTILIDAD CLAVE PARA FECHAS ===
+function formatDateSafe(dateVal) {
+  if (!dateVal) return '';
+  if (dateVal instanceof Date) {
+    // Ajuste de zona horaria para evitar desfase de 1 día
+    var d = new Date(dateVal.getTime() + (dateVal.getTimezoneOffset() * 60000));
+    return Utilities.formatDate(d, "GMT", "yyyy-MM-dd");
+  }
+  // Si es un string, intentar extraer los primeros 10 caracteres (YYYY-MM-DD)
+  var str = String(dateVal).trim();
+  if (str.length >= 10) return str.substring(0, 10);
+  return str;
+}
 
 function doGet(e) {
   const action = e.parameter ? e.parameter.action : '';
@@ -103,6 +117,9 @@ function rowToObject(headers, row) {
       obj['ESTATUS'] = value !== undefined && value !== null && String(value).trim() !== '' ? String(value).trim() : 'Solicitado';
     } else if (cleanHeader === 'CANTIDAD PENDIENTE' || cleanHeader === 'CANTIDAD_PENDIENTE') {
       obj['CANTIDAD_PENDIENTE'] = value !== undefined && value !== null ? parseInt(value, 10) || 0 : 0;
+    } else if (cleanHeader === 'FECHA_PEDIDO' || cleanHeader === 'FECHA') {
+      // Formato de fecha estandarizado
+      obj[cleanHeader] = formatDateSafe(value);
     } else {
       obj[cleanHeader] = value !== undefined && value !== null ? String(value).trim() : '';
     }
@@ -325,7 +342,6 @@ function saveBatchOrders(payload) {
   const headers = data[0].map(h => String(h).trim().toUpperCase());
   const idIndex = headers.indexOf('ID');
 
-  // Eliminar filas anteriores si es una edición
   if (payload.batchId && idIndex !== -1) {
     for (let i = data.length - 1; i >= 1; i--) {
       if (String(data[i][idIndex]).trim() === String(payload.batchId).trim()) {
