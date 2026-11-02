@@ -529,6 +529,58 @@
         </div>
     </div>
 
+    <div id="modal-order" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[94vh] flex flex-col fade-in">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
+                <div>
+                    <h2 id="modal-order-title" class="text-lg font-bold text-slate-900">Editar Pedido Internacional</h2>
+                    <p class="text-xs text-slate-500 mt-1">Gestione los productos y el desglose de facturas por cada uno.</p>
+                </div>
+                <button onclick="closeModal('modal-order')" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <form id="form-order" class="p-6 space-y-6 overflow-y-auto flex-1 bg-slate-50/30" onsubmit="event.preventDefault(); saveOrder();">
+                <input type="hidden" id="ord-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fecha Pedido <span class="text-rose-500">*</span></label>
+                        <input type="date" id="ord-FECHA_PEDIDO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Número Pedido <span class="text-rose-500">*</span></label>
+                        <input type="text" id="ord-NUM_PEDIDO" required placeholder="Ej: N001-2026" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Proveedor <span class="text-rose-500">*</span></label>
+                        <input type="text" id="ord-PROVEEDOR" list="suppliers-list" required placeholder="Selecciona o escribe..." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all">
+                        <datalist id="suppliers-list"></datalist>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <i data-lucide="layers" class="w-4 h-4 text-brand-600"></i> Detalle de Productos
+                        </h3>
+                        <button type="button" onclick="addProductBlock()" class="bg-brand-50 text-brand-700 hover:bg-brand-100 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-brand-200 transition-colors">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Agregar Producto
+                        </button>
+                    </div>
+
+                    <div id="ord-products-container" class="space-y-4"></div>
+                </div>
+
+                <div class="pt-6 flex justify-end gap-3 border-t border-slate-200 mt-6">
+                    <button type="button" onclick="closeModal('modal-order')" class="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 shadow-md shadow-brand-500/20 transition-all flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i> Guardar Pedido
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-6 right-6 px-6 py-4 rounded-xl text-white font-semibold text-sm shadow-2xl transform transition-all duration-300 translate-y-20 opacity-0 z-[60] flex items-center gap-3">
         <i id="toast-icon" class="w-5 h-5"></i>
         <span id="toast-msg">Mensaje</span>
@@ -582,7 +634,6 @@
             return '';
         }
 
-        // FIX: fetchAPI ahora fuerza POST si hay payload
         async function fetchAPI(action, payload = null) {
             let options = {};
             let url = API_URL;
@@ -912,7 +963,6 @@
 
         function deleteMovement(rowId) {
             if (confirm('¿Estás seguro de eliminar este movimiento? El stock del producto será ajustado automáticamente para mantener el inventario correcto.')) {
-                // FIX: Enviamos el rowId dentro de un objeto para que fetchAPI lo trate como POST
                 fetchAPI('deleteMovement', { rowId: parseInt(rowId, 10) }).then(res => {
                     showToast(res.message, 'success');
                     loadMovements();
@@ -1054,6 +1104,7 @@
 
                 var fechaDisplay = formatDateForInput(batch.fechaPedido);
 
+                // FIX: Se usa comillas simples dobles para evitar conflictos con IDs que contienen guiones
                 return `<tr class="hover:bg-slate-50/80 transition-colors group">
                     <td class="px-6 py-4">
                         <div class="font-bold text-sm text-slate-900">${batch.numPedido || '-'}</div>
@@ -1397,7 +1448,7 @@
                             </div>
                             <div>
                                 <div class="flex justify-between items-center text-xs pt-3 border-t border-slate-100 mb-3">
-                                    <span class="font-bold text-lg text-rose-600">${formatCurrency(p['PRECIO VENTA ($)'])}</span>
+                                    <span class="font-bold text-lg text-slate-900">${formatCurrency(p['PRECIO VENTA ($)'])}</span>
                                 </div>
                                 <div class="flex justify-end gap-2">
                                     <button onclick="openProductModal('${p.CODIGO}')" class="flex-1 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold hover:bg-brand-50 hover:text-brand-700 transition-colors">Editar</button>
