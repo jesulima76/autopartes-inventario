@@ -8,36 +8,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Chart.js para Gráficos Visuales -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        
-        body { 
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; 
-            background-color: #f8fafc; 
-        }
-
+        body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; background-color: #f8fafc; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        
         .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
-        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
         .low-stock { color: #ef4444; font-weight: 700; }
         .loader { border: 3px solid #e2e8f0; border-top: 3px solid #2563eb; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        @media print {
-            body * { visibility: hidden; }
-            #printable-invoice, #printable-invoice * { visibility: visible; }
-            #printable-invoice { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; }
-        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
@@ -60,10 +45,10 @@
                     <button onclick="openOrderModal()" class="bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-md shadow-sky-500/20">
                         <i data-lucide="plane-takeoff" class="w-4 h-4"></i> <span class="hidden sm:inline">Nuevo Pedido Int.</span>
                     </button>
-                    <button onclick="openClientModal()" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                    <button onclick="openClientModal()" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
                         <i data-lucide="user-plus" class="w-4 h-4 text-purple-600"></i> <span class="hidden sm:inline">Cliente</span>
                     </button>
-                    <button onclick="openSupplierModal()" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                    <button onclick="openSupplierModal()" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
                         <i data-lucide="truck" class="w-4 h-4 text-amber-600"></i> <span class="hidden sm:inline">Proveedor</span>
                     </button>
                     <button onclick="openProductModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-md shadow-blue-500/20">
@@ -86,18 +71,6 @@
             <button id="tab-orders" onclick="switchTab('orders')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
                 <i data-lucide="globe-2" class="w-4 h-4"></i> Pedidos Internacionales
             </button>
-            <button id="tab-products" onclick="switchTab('products')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
-                <i data-lucide="boxes" class="w-4 h-4"></i> Maestro de Productos
-            </button>
-            <button id="tab-movements" onclick="switchTab('movements')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
-                <i data-lucide="history" class="w-4 h-4"></i> Historial Movimientos
-            </button>
-            <button id="tab-clients" onclick="switchTab('clients')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
-                <i data-lucide="users" class="w-4 h-4"></i> Clientes
-            </button>
-            <button id="tab-suppliers" onclick="switchTab('suppliers')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
-                <i data-lucide="building" class="w-4 h-4"></i> Proveedores
-            </button>
         </div>
 
         <!-- Dashboard Section -->
@@ -107,52 +80,21 @@
             <div id="dashboard-content" class="space-y-6">
                 <!-- Tarjetas KPIs -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-5 text-white shadow-lg shadow-blue-500/10">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs font-medium text-blue-100 uppercase tracking-wider">Total Productos</p>
-                                <h3 id="dash-total-productos" class="text-3xl font-extrabold mt-1">0</h3>
-                            </div>
-                            <div class="p-3 bg-white/15 backdrop-blur-md rounded-xl text-white">
-                                <i data-lucide="package" class="w-6 h-6"></i>
-                            </div>
-                        </div>
+                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-5 text-white shadow-lg">
+                        <p class="text-xs font-medium text-blue-100 uppercase">Total Productos</p>
+                        <h3 id="dash-total-productos" class="text-3xl font-extrabold mt-1">0</h3>
                     </div>
-
-                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 p-5 text-white shadow-lg shadow-emerald-500/10">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs font-medium text-emerald-100 uppercase tracking-wider">Valor Inventario</p>
-                                <h3 id="dash-valor-inventario" class="text-3xl font-extrabold mt-1">$0.00</h3>
-                            </div>
-                            <div class="p-3 bg-white/15 backdrop-blur-md rounded-xl text-white">
-                                <i data-lucide="dollar-sign" class="w-6 h-6"></i>
-                            </div>
-                        </div>
+                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 p-5 text-white shadow-lg">
+                        <p class="text-xs font-medium text-emerald-100 uppercase">Valor Inventario</p>
+                        <h3 id="dash-valor-inventario" class="text-3xl font-extrabold mt-1">$0.00</h3>
                     </div>
-
-                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 p-5 text-white shadow-lg shadow-rose-500/10">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs font-medium text-rose-100 uppercase tracking-wider">Stock Crítico (≤ 5)</p>
-                                <h3 id="dash-stock-bajo" class="text-3xl font-extrabold mt-1">0</h3>
-                            </div>
-                            <div class="p-3 bg-white/15 backdrop-blur-md rounded-xl text-white">
-                                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
-                            </div>
-                        </div>
+                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 p-5 text-white shadow-lg">
+                        <p class="text-xs font-medium text-rose-100 uppercase">Stock Crítico (≤ 5)</p>
+                        <h3 id="dash-stock-bajo" class="text-3xl font-extrabold mt-1">0</h3>
                     </div>
-
-                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-800 p-5 text-white shadow-lg shadow-purple-500/10">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs font-medium text-purple-100 uppercase tracking-wider">Flujo (Ent / Sal)</p>
-                                <h3 id="dash-total-movimientos" class="text-2xl font-extrabold mt-1">0 / 0</h3>
-                            </div>
-                            <div class="p-3 bg-white/15 backdrop-blur-md rounded-xl text-white">
-                                <i data-lucide="arrow-up-down" class="w-6 h-6"></i>
-                            </div>
-                        </div>
+                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-800 p-5 text-white shadow-lg">
+                        <p class="text-xs font-medium text-purple-100 uppercase">Flujo (Ent / Sal)</p>
+                        <h3 id="dash-total-movimientos" class="text-2xl font-extrabold mt-1">0 / 0</h3>
                     </div>
                 </div>
 
@@ -176,259 +118,34 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Listados de Ranking -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-                            <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Detalle de Ventas por Producto
-                        </h3>
-                        <div id="dash-top-products" class="space-y-4"></div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-                            <i data-lucide="award" class="w-4 h-4 text-purple-600"></i> Top Clientes (Monto Acumulado)
-                        </h3>
-                        <div id="dash-top-clients" class="space-y-4"></div>
-                    </div>
-                </div>
             </div>
         </div>
 
         <!-- Pedidos Internacionales -->
         <div id="content-orders" class="hidden fade-in space-y-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
-                        <i data-lucide="filter" class="w-4 h-4 text-sky-600"></i> Filtros de Pedidos Internacionales
-                    </h3>
-                    <button onclick="clearOrderFilters()" class="text-[11px] font-semibold text-sky-600 hover:text-sky-800 flex items-center gap-1">
-                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Limpiar Filtros
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Fecha Pedido (Desde)</label>
-                        <input type="date" id="filter-ord-date-from" onchange="renderOrders()" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-slate-50/50">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Fecha Pedido (Hasta)</label>
-                        <input type="date" id="filter-ord-date-to" onchange="renderOrders()" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-slate-50/50">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">N° de Pedido</label>
-                        <input type="text" id="filter-ord-num" oninput="renderOrders()" placeholder="Ej: N001-2026" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-slate-50/50">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Código / Factura Prov.</label>
-                        <input type="text" id="filter-ord-code-fac" oninput="renderOrders()" placeholder="Código o Factura..." class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-slate-50/50">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Estatus Logístico</label>
-                        <select id="filter-ord-status" onchange="renderOrders()" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-slate-50/50">
-                            <option value="">TODOS LOS ESTATUS</option>
-                            <option value="Solicitado">Solicitado</option>
-                            <option value="Facturado">Facturado</option>
-                            <option value="Embarcado">Embarcado</option>
-                            <option value="En puerto">En puerto</option>
-                            <option value="Nacionalización">Nacionalización</option>
-                            <option value="Despacho">Despacho</option>
-                            <option value="Entregado">Entregado</option>
-                            <option value="En inventario">En inventario</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabla de Pedidos -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-slate-200 text-left">
                         <thead class="bg-slate-50">
                             <tr>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Fecha / N° Pedido</th>
+                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">N° Pedido</th>
                                 <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Proveedor</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Detalle de Materiales (Estatus / Facturas / Cantidades)</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Resumen Totales</th>
-                                <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
+                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Detalle</th>
+                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Totales</th>
                             </tr>
                         </thead>
                         <tbody id="orders-table-body" class="bg-white divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
-            <div id="orders-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
-        </div>
-
-        <!-- Secciones Ocultas: Productos, Movimientos, Clientes, Proveedores -->
-        <div id="content-products" class="hidden fade-in space-y-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">
-                <div class="relative w-full sm:w-80">
-                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="search-products" placeholder="Buscar por código, descripción..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-slate-50/50">
-                </div>
-                <span id="product-count" class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">0 productos</span>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Código</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Descripción</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Grupo</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Modelo</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Stock</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">P. Venta</th>
-                                <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="products-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div id="products-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
-        </div>
-
-        <div id="content-movements" class="hidden fade-in space-y-4">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Fecha</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Tipo</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Código</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Cantidad</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Stock Final</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Motivo</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Documento</th>
-                            </tr>
-                        </thead>
-                        <tbody id="movements-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div id="movements-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
-        </div>
-
-        <div id="content-clients" class="hidden fade-in">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Nombre</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Email</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Dirección</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Teléfono</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clients-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div id="clients-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
-        </div>
-
-        <div id="content-suppliers" class="hidden fade-in">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Nombre</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Dirección</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Teléfono</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Correo</th>
-                            </tr>
-                        </thead>
-                        <tbody id="suppliers-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div id="suppliers-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
         </div>
     </main>
-
-    <!-- Modal Pedido Internacional Multi-Producto -->
-    <div id="modal-order" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[94vh] flex flex-col fade-in border border-slate-100">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white rounded-t-2xl">
-                <h2 id="modal-order-title" class="text-base font-bold text-slate-900">Editar Pedido Internacional</h2>
-                <button onclick="closeModal('modal-order')" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            
-            <form id="form-order" class="p-6 space-y-4 overflow-y-auto flex-1" onsubmit="event.preventDefault(); saveOrder();">
-                <input type="hidden" id="ord-id">
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/70 p-4 rounded-xl border border-slate-200">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Fecha Pedido *</label>
-                        <input type="date" id="ord-FECHA_PEDIDO" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-white">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Número Pedido *</label>
-                        <input type="text" id="ord-NUM_PEDIDO" required placeholder="Ej: N001-2026" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-white">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Proveedor (LATAM/NAFTA) *</label>
-                        <input type="text" id="ord-PROVEEDOR" list="supplier-order-list" required placeholder="Selecciona o escribe..." class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-white">
-                        <datalist id="supplier-order-list"></datalist>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Detalle de Productos & Embarques</h3>
-                    <button type="button" onclick="addOrderRow()" class="bg-sky-50 hover:bg-sky-100 text-sky-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition border border-sky-200">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Agregar Producto al Pedido
-                    </button>
-                </div>
-
-                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[1000px]">
-                            <thead class="bg-slate-100 text-[10px] text-slate-600 font-bold uppercase">
-                                <tr>
-                                    <th class="p-3 border-b border-slate-200">Código *</th>
-                                    <th class="p-3 border-b border-slate-200">Alliance / Modelo</th>
-                                    <th class="p-3 border-b border-slate-200">Descripción</th>
-                                    <th class="p-3 border-b border-slate-200 w-24">P. Compra ($)</th>
-                                    <th class="p-3 border-b border-slate-200 w-28">N° Factura</th>
-                                    <th class="p-3 border-b border-slate-200 w-20">Cant. Pedido</th>
-                                    <th class="p-3 border-b border-slate-200 w-20">Cant. Embarc.</th>
-                                    <th class="p-3 border-b border-slate-200 w-20">Cant. Pend.</th>
-                                    <th class="p-3 border-b border-slate-200 w-40">Estatus Logístico *</th>
-                                    <th class="p-3 border-b border-slate-200 w-10 text-center"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="ord-items-body" class="divide-y divide-slate-100 bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modal-order')" class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-700 shadow-md shadow-sky-500/20 transition">Guardar Pedido Completo</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transform transition-all duration-300 translate-y-20 opacity-0 z-[60]"></div>
 
     <script>
-        var API_URL = "https://script.google.com/macros/s/AKfycbxiIsgcTMwLwPSEHJVcGF8eyJp_DdojUc6XyENN-e_n634JwqF1ESmsVp5ReuppyCwt7A/exec";
-
-        var products = [];
-        var movements = [];
-        var clients = [];
-        var suppliers = [];
-        var orders = [];
-        var currentTab = 'dashboard';
-        var LOW_STOCK = 5;
+        // PEGA AQUÍ LA NUEVA URL OBTENIDA EN EL PASO 2
+        var API_URL = "https://script.google.com/macros/s/AKfycbzY2y19tHtoYYsY8e1su8E4iZedh5MHNO8DgCpOsb3PnMi05na7tTOEMVKQdjy8O7sygA/exec";
 
         var stockChartInstance = null;
         var topProductsChartInstance = null;
@@ -436,16 +153,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (window.lucide) lucide.createIcons();
             loadDashboard();
-            loadProductsDataSilent();
-            loadOrdersDataSilent();
         });
 
         function formatCurrency(value) {
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 2
-            }).format(value || 0);
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value || 0);
         }
 
         async function fetchAPI(action, payload = null) {
@@ -476,59 +187,8 @@
                     document.getElementById('dash-stock-bajo').textContent = metrics.productosStockBajo || 0;
                     document.getElementById('dash-total-movimientos').textContent = (metrics.totalEntradas || 0) + ' / ' + (metrics.totalSalidas || 0);
 
-                    // Dibujar gráficos interactivos
                     renderDashboardCharts(metrics);
-
-                    // Listado Top Productos
-                    var topContainer = document.getElementById('dash-top-products');
-                    var topList = metrics.topProducts || [];
-
-                    if (topList.length === 0) {
-                        topContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">No hay ventas registradas.</p>';
-                    } else {
-                        var sales = topList.map(function(p) { return parseInt(p.TOTAL_VENTAS, 10) || 0; });
-                        var maxSales = Math.max.apply(Math, sales.concat([1]));
-                        topContainer.innerHTML = topList.map(function(p) {
-                            var totalVentas = parseInt(p.TOTAL_VENTAS, 10) || 0;
-                            var pct = Math.min(100, Math.round((totalVentas / maxSales) * 100));
-                            return '<div>' +
-                                '<div class="flex justify-between text-xs mb-1">' +
-                                    '<span class="font-medium text-slate-800">' + (p.DESCRIPCION || 'Sin descripción') + ' <span class="text-slate-400 font-mono text-[10px]">(' + (p.CODIGO || '-') + ')</span></span>' +
-                                    '<span class="font-bold text-slate-900">' + totalVentas + ' ud.</span>' +
-                                '</div>' +
-                                '<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">' +
-                                    '<div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style="width: ' + pct + '%"></div>' +
-                                '</div>' +
-                            '</div>';
-                        }).join('');
-                    }
-
-                    // Listado Top Clientes
-                    var topClientsContainer = document.getElementById('dash-top-clients');
-                    var topClientsList = metrics.topClients || [];
-
-                    if (topClientsList.length === 0) {
-                        topClientsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">No hay compras registradas por clientes.</p>';
-                    } else {
-                        var amounts = topClientsList.map(function(c) { return parseFloat(c.MONTO_TOTAL) || 0; });
-                        var maxAmount = Math.max.apply(Math, amounts.concat([1]));
-                        topClientsContainer.innerHTML = topClientsList.map(function(c) {
-                            var monto = parseFloat(c.MONTO_TOTAL) || 0;
-                            var pct = Math.min(100, Math.round((monto / maxAmount) * 100));
-                            return '<div>' +
-                                '<div class="flex justify-between text-xs mb-1">' +
-                                    '<span class="font-medium text-slate-800">' + (c.NOMBRE || 'Cliente General') + '</span>' +
-                                    '<span class="font-bold text-purple-700">' + formatCurrency(monto) + '</span>' +
-                                '</div>' +
-                                '<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">' +
-                                    '<div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full" style="width: ' + pct + '%"></div>' +
-                                '</div>' +
-                            '</div>';
-                        }).join('');
-                    }
-
                     showLoading('dashboard-loading', false);
-                    if (window.lucide) lucide.createIcons();
                 })
                 .catch(function(err) {
                     showToast(err.message, 'error');
@@ -539,7 +199,6 @@
         function renderDashboardCharts(metrics) {
             if (typeof Chart === 'undefined') return;
 
-            // 1. Gráfico Estado del Stock (Doughnut)
             var elStock = document.getElementById('chartStockStatus');
             if (elStock) {
                 var ctxStock = elStock.getContext('2d');
@@ -552,22 +211,13 @@
                         datasets: [{
                             data: [metrics.productosStockNormal || 0, metrics.productosStockBajo || 0],
                             backgroundColor: ['#10b981', '#f43f5e'],
-                            borderWidth: 0,
-                            hoverOffset: 4
+                            borderWidth: 0
                         }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'bottom' }
-                        },
-                        cutout: '70%'
-                    }
+                    options: { responsive: true, maintainAspectRatio: false }
                 });
             }
 
-            // 2. Gráfico Top Productos (Bar)
             var elProducts = document.getElementById('chartTopProducts');
             if (elProducts) {
                 var ctxProducts = elProducts.getContext('2d');
@@ -585,449 +235,12 @@
                             label: 'Unidades Vendidas',
                             data: dataVentas,
                             backgroundColor: '#6366f1',
-                            borderRadius: 8,
-                            barThickness: 24
+                            borderRadius: 8
                         }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
-                        scales: {
-                            x: { grid: { display: false } },
-                            y: { grid: { color: '#f1f5f9' }, beginAtZero: true }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false }
                 });
             }
-        }
-
-        function loadOrders(callback) {
-            showLoading('orders-loading', true);
-            fetchAPI('getOrders')
-                .then(function(data) {
-                    orders = data || [];
-                    renderOrders();
-                    showLoading('orders-loading', false);
-                    if (callback) callback();
-                })
-                .catch(function(err) {
-                    showToast(err.message, 'error');
-                    showLoading('orders-loading', false);
-                });
-        }
-
-        function loadOrdersDataSilent() {
-            fetchAPI('getOrders').then(function(data) { orders = data || []; }).catch(function(){});
-        }
-
-        function loadProductsDataSilent() {
-            fetchAPI('getProducts').then(function(data) { products = data || []; }).catch(function(){});
-        }
-
-        function normalizeStatus(statusVal) {
-            if (!statusVal || typeof statusVal !== 'string') return 'Solicitado';
-            var clean = statusVal.trim();
-            if (!clean) return 'Solicitado';
-            
-            var validStatuses = [
-                'Solicitado', 'Facturado', 'Embarcado', 
-                'En puerto', 'Nacionalización', 'Despacho', 
-                'Entregado', 'En inventario'
-            ];
-
-            var match = validStatuses.find(function(s) { 
-                return s.toLowerCase() === clean.toLowerCase(); 
-            });
-
-            return match || 'Solicitado';
-        }
-
-        function getStatusBadgeClass(status) {
-            switch(status) {
-                case 'Solicitado': return 'bg-amber-50 text-amber-700 border-amber-200';
-                case 'Facturado': return 'bg-amber-100 text-amber-800 border-amber-200';
-                case 'Embarcado': return 'bg-sky-100 text-sky-800 border-sky-200';
-                case 'En puerto': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-                case 'Nacionalización': return 'bg-purple-100 text-purple-800 border-purple-200';
-                case 'Despacho': return 'bg-blue-100 text-blue-800 border-blue-200';
-                case 'Entregado': return 'bg-teal-100 text-teal-800 border-teal-200';
-                case 'En inventario': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-                default: return 'bg-slate-100 text-slate-800 border-slate-200';
-            }
-        }
-
-        function groupOrdersByBatch(ordersList) {
-            var grouped = {};
-            ordersList.forEach(function(o) {
-                var key = o.ID || (o.NUM_PEDIDO + '_' + o.FECHA_PEDIDO);
-                if (!grouped[key]) {
-                    grouped[key] = {
-                        id: o.ID,
-                        numPedido: o.NUM_PEDIDO,
-                        fechaPedido: o.FECHA_PEDIDO,
-                        proveedor: o.PROVEEDOR,
-                        items: []
-                    };
-                }
-                grouped[key].items.push(o);
-            });
-            return Object.values(grouped);
-        }
-
-        function renderOrders() {
-            var tbody = document.getElementById('orders-table-body');
-            if (!orders || orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400 text-xs">No hay pedidos registrados.</td></tr>';
-                return;
-            }
-
-            var dateFromVal = document.getElementById('filter-ord-date-from').value;
-            var dateToVal = document.getElementById('filter-ord-date-to').value;
-            var numVal = document.getElementById('filter-ord-num').value.toLowerCase().trim();
-            var codeFacVal = document.getElementById('filter-ord-code-fac').value.toLowerCase().trim();
-            var statusVal = document.getElementById('filter-ord-status').value;
-
-            var groupedBatches = groupOrdersByBatch(orders);
-
-            var filteredBatches = groupedBatches.filter(function(batch) {
-                if (dateFromVal || dateToVal) {
-                    if (!batch.fechaPedido) return false;
-                    var bDateStr = String(batch.fechaPedido).split('T')[0];
-                    if (dateFromVal && bDateStr < dateFromVal) return false;
-                    if (dateToVal && bDateStr > dateToVal) return false;
-                }
-
-                if (numVal && String(batch.numPedido || '').toLowerCase().indexOf(numVal) === -1) {
-                    return false;
-                }
-
-                if (codeFacVal) {
-                    var matchesCodeOrFac = batch.items.some(function(i) {
-                        var cod = String(i.CODIGO || '').toLowerCase();
-                        var fac = String(i.NUM_FACTURA || i.numFactura || '').toLowerCase();
-                        var desc = String(i.DESCRIPCION || '').toLowerCase();
-                        return cod.indexOf(codeFacVal) !== -1 || fac.indexOf(codeFacVal) !== -1 || desc.indexOf(codeFacVal) !== -1;
-                    });
-                    if (!matchesCodeOrFac) return false;
-                }
-
-                if (statusVal) {
-                    var matchesStatus = batch.items.some(function(i) {
-                        return normalizeStatus(i.ESTATUS || i.estatus) === statusVal;
-                    });
-                    if (!matchesStatus) return false;
-                }
-
-                return true;
-            });
-
-            if (filteredBatches.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400 text-xs">No se encontraron pedidos con los filtros aplicados.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = filteredBatches.map(function(batch) {
-                var dateStr = 'N/A';
-                if (batch.fechaPedido) {
-                    var cleanDate = String(batch.fechaPedido).split('T')[0];
-                    var parts = cleanDate.split('-');
-                    if (parts.length === 3) dateStr = parts[2] + '/' + parts[1] + '/' + parts[0];
-                    else dateStr = cleanDate;
-                }
-
-                var totalPedidas = batch.items.reduce(function(sum, i) { return sum + (parseInt(i.CANTIDAD_PEDIDO || i.cantidadPedido, 10) || 0); }, 0);
-                var totalEmbarcadas = batch.items.reduce(function(sum, i) { return sum + (parseInt(i.CANTIDAD_EMBARCADA || i.cantidadEmbarcada, 10) || 0); }, 0);
-                var totalPendientes = Math.max(0, totalPedidas - totalEmbarcadas);
-
-                var itemsHtml = batch.items.map(function(i) {
-                    var st = normalizeStatus(i.ESTATUS || i.estatus);
-                    var stClass = getStatusBadgeClass(st);
-                    
-                    var cantPed = parseInt(i.CANTIDAD_PEDIDO || i.cantidadPedido, 10) || 0;
-                    var cantEmb = parseInt(i.CANTIDAD_EMBARCADA || i.cantidadEmbarcada, 10) || 0;
-                    var cantPend = Math.max(0, cantPed - cantEmb);
-                    var precioComp = parseFloat(i.PRECIO_COMPRA || i.precioCompra || 0);
-
-                    var numFac = i.NUM_FACTURA || i.numFactura;
-                    var facTag = numFac ? '<span class="font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">Fac: ' + numFac + '</span>' : '<span class="text-slate-400 font-normal">Sin Factura</span>';
-
-                    return '<div class="text-[11px] border-b border-slate-100 last:border-0 py-2 space-y-1">' +
-                        '<div class="flex justify-between items-center gap-2">' +
-                            '<div><span class="font-mono font-bold text-slate-900">' + (i.CODIGO || '-') + '</span> - ' + (i.DESCRIPCION || '') + ' ' + facTag + '</div>' +
-                            '<span class="inline-block px-2 py-0.5 text-[9px] font-bold rounded-full border ' + stClass + '">' + st + '</span>' +
-                        '</div>' +
-                        '<div class="flex justify-between text-[10px] text-slate-500 font-mono">' +
-                            '<span>Ped: <b class="text-sky-700">' + cantPed + '</b></span>' +
-                            '<span>Emb: <b class="text-emerald-700">' + cantEmb + '</b></span>' +
-                            '<span>Pend: <b class="text-amber-700">' + cantPend + '</b></span>' +
-                            '<span>Cost: <b>' + formatCurrency(precioComp) + '</b></span>' +
-                        '</div>' +
-                    '</div>';
-                }).join('');
-
-                return '<tr class="hover:bg-slate-50 transition">' +
-                    '<td class="px-4 py-3 text-xs">' +
-                        '<div class="font-bold text-slate-900">' + (batch.numPedido || '-') + '</div>' +
-                        '<div class="text-[10px] text-slate-400">' + dateStr + '</div>' +
-                    '</td>' +
-                    '<td class="px-4 py-3 text-xs font-medium text-slate-700">' + (batch.proveedor || '-') + '</td>' +
-                    '<td class="px-4 py-3 text-xs max-w-lg">' + itemsHtml + '</td>' +
-                    '<td class="px-4 py-3 text-xs space-y-0.5">' +
-                        '<div class="font-bold text-sky-700">Total Pedido: ' + totalPedidas + ' ud.</div>' +
-                        '<div class="text-[11px] text-emerald-600 font-semibold">Embarcado: ' + totalEmbarcadas + ' ud.</div>' +
-                        '<div class="text-[11px] text-amber-600 font-semibold">Pendiente: ' + totalPendientes + ' ud.</div>' +
-                    '</td>' +
-                    '<td class="px-4 py-3 text-right text-xs">' +
-                        '<button onclick=\'openOrderModal("' + batch.id + '")\' class="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition mr-1" title="Editar Pedido"><i data-lucide="edit-2" class="w-4 h-4"></i></button>' +
-                    '</td>' +
-                '</tr>';
-            }).join('');
-
-            if (window.lucide) lucide.createIcons();
-        }
-
-        function addOrderRow(itemData) {
-            var tbody = document.getElementById('ord-items-body');
-            var rowId = 'ord-row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
-            
-            var rawStatus = itemData ? (itemData.ESTATUS || itemData.estatus || itemData['ESTATUS LOGÍSTICO'] || itemData.ESTATUS_LOGISTICO) : 'Solicitado';
-            var targetStatus = normalizeStatus(rawStatus);
-
-            var statuses = ['Solicitado', 'Facturado', 'Embarcado', 'En puerto', 'Nacionalización', 'Despacho', 'Entregado', 'En inventario'];
-            
-            var statusOptionsHtml = statuses.map(function(st) {
-                var isSelected = (st.toLowerCase() === targetStatus.toLowerCase()) ? 'selected="selected"' : '';
-                return '<option value="' + st + '" ' + isSelected + '>' + st + '</option>';
-            }).join('');
-
-            var tr = document.createElement('tr');
-            tr.id = rowId;
-            tr.className = 'border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition';
-            tr.innerHTML = '<td class="p-2">' +
-                    '<select required onchange="onOrderRowProductChange(this, \'' + rowId + '\')" class="ord-row-codigo w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-white">' +
-                        buildOrderProductOptionsHtml() +
-                    '</select>' +
-                '</td>' +
-                '<td class="p-2 text-xs text-slate-500">' +
-                    '<div class="ord-row-alliance font-medium text-slate-700 font-mono text-[11px]">-</div>' +
-                    '<div class="ord-row-modelo text-[10px] text-slate-400">-</div>' +
-                '</td>' +
-                '<td class="p-2 text-xs text-slate-700">' +
-                    '<div class="ord-row-descripcion line-clamp-1">-</div>' +
-                '</td>' +
-                '<td class="p-2">' +
-                    '<input type="number" step="0.01" required min="0" value="0" class="ord-row-precio w-full px-2 py-1 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 font-medium">' +
-                '</td>' +
-                '<td class="p-2">' +
-                    '<input type="text" placeholder="Ej: 99522373" class="ord-row-numfactura w-full px-2 py-1 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 font-semibold text-slate-800">' +
-                '</td>' +
-                '<td class="p-2">' +
-                    '<input type="number" required min="1" value="1" oninput="calculateRowPending(\'' + rowId + '\')" class="ord-row-cant-pedido w-full px-2 py-1 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 font-bold text-sky-700">' +
-                '</td>' +
-                '<td class="p-2">' +
-                    '<input type="number" min="0" value="0" oninput="calculateRowPending(\'' + rowId + '\')" class="ord-row-cant-embarcada w-full px-2 py-1 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 text-emerald-700 font-semibold">' +
-                '</td>' +
-                '<td class="p-2">' +
-                    '<input type="number" readonly value="1" class="ord-row-cant-pendiente w-full px-2 py-1 border border-slate-200 rounded-lg text-xs outline-none bg-slate-100 text-amber-700 font-extrabold">' +
-                '</td>' +
-                '<td class="p-2">' +
-                    '<select class="ord-row-estatus w-full px-2 py-1 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 bg-white font-bold text-slate-800">' +
-                        statusOptionsHtml +
-                    '</select>' +
-                '</td>' +
-                '<td class="p-2 text-center">' +
-                    '<button type="button" onclick="removeOrderRow(\'' + rowId + '\')" class="text-rose-500 hover:text-rose-700 p-1 rounded-lg hover:bg-rose-50 transition">' +
-                        '<i data-lucide="trash-2" class="w-4 h-4 inline"></i>' +
-                    '</button>' +
-                '</td>';
-
-            tbody.appendChild(tr);
-
-            if (itemData) {
-                var selectEl = tr.querySelector('.ord-row-codigo');
-                selectEl.value = itemData.CODIGO || itemData.codigo || '';
-                onOrderRowProductChange(selectEl, rowId);
-                
-                tr.querySelector('.ord-row-precio').value = itemData.PRECIO_COMPRA || itemData.precioCompra || 0;
-                tr.querySelector('.ord-row-numfactura').value = itemData.NUM_FACTURA || itemData.numFactura || '';
-                tr.querySelector('.ord-row-cant-pedido').value = itemData.CANTIDAD_PEDIDO || itemData.cantidadPedido || 1;
-                tr.querySelector('.ord-row-cant-embarcada').value = itemData.CANTIDAD_EMBARCADA || itemData.cantidadEmbarcada || 0;
-                
-                var estatusSelect = tr.querySelector('.ord-row-estatus');
-                estatusSelect.value = targetStatus;
-                
-                calculateRowPending(rowId);
-            } else {
-                calculateRowPending(rowId);
-            }
-
-            if (window.lucide) lucide.createIcons();
-        }
-
-        function buildOrderProductOptionsHtml() {
-            if (products.length === 0) return '<option value="">Cargando productos...</option>';
-            var options = ['<option value="">-- Seleccione Código --</option>'];
-            products.forEach(function(p) {
-                options.push('<option value="' + p.CODIGO + '">' + p.CODIGO + ' - ' + (p.DESCRIPCION || '') + '</option>');
-            });
-            return options.join('');
-        }
-
-        function calculateRowPending(rowId) {
-            var tr = document.getElementById(rowId);
-            if (!tr) return;
-            var cPed = parseInt(tr.querySelector('.ord-row-cant-pedido').value, 10) || 0;
-            var cEmb = parseInt(tr.querySelector('.ord-row-cant-embarcada').value, 10) || 0;
-            tr.querySelector('.ord-row-cant-pendiente').value = Math.max(0, cPed - cEmb);
-        }
-
-        function removeOrderRow(rowId) {
-            var tbody = document.getElementById('ord-items-body');
-            if (tbody.children.length > 1) {
-                var el = document.getElementById(rowId);
-                if (el) el.remove();
-            } else {
-                showToast('El pedido debe contener al menos un producto.', 'error');
-            }
-        }
-
-        function onOrderRowProductChange(selectEl, rowId) {
-            var code = selectEl.value;
-            var tr = document.getElementById(rowId);
-            if (!tr) return;
-
-            var allianceEl = tr.querySelector('.ord-row-alliance');
-            var modeloEl = tr.querySelector('.ord-row-modelo');
-            var descEl = tr.querySelector('.ord-row-descripcion');
-            var precioEl = tr.querySelector('.ord-row-precio');
-
-            if (!code) {
-                allianceEl.textContent = '-';
-                modeloEl.textContent = '-';
-                descEl.textContent = '-';
-                return;
-            }
-
-            var prod = products.find(function(p) { return String(p.CODIGO).trim() === String(code).trim(); });
-            if (prod) {
-                allianceEl.textContent = prod.ALLIANCE || '-';
-                modeloEl.textContent = prod.MODELO || '-';
-                descEl.textContent = prod.DESCRIPCION || '-';
-                if (!precioEl.value || parseFloat(precioEl.value) === 0) {
-                    precioEl.value = prod['PRECIO COMPRA ($)'] || 0;
-                }
-            }
-        }
-
-        function openOrderModal(batchId) {
-            var modal = document.getElementById('modal-order');
-            var title = document.getElementById('modal-order-title');
-            document.getElementById('form-order').reset();
-            document.getElementById('ord-id').value = '';
-            document.getElementById('ord-items-body').innerHTML = '';
-
-            if (batchId) {
-                var batchItems = orders.filter(function(o) { return String(o.ID) === String(batchId); });
-                if (batchItems.length > 0) {
-                    var first = batchItems[0];
-                    title.textContent = 'Editar Pedido Internacional';
-                    document.getElementById('ord-id').value = first.ID;
-                    document.getElementById('ord-FECHA_PEDIDO').value = first.FECHA_PEDIDO ? String(first.FECHA_PEDIDO).split('T')[0] : '';
-                    document.getElementById('ord-NUM_PEDIDO').value = first.NUM_PEDIDO || '';
-                    document.getElementById('ord-PROVEEDOR').value = first.PROVEEDOR || '';
-
-                    batchItems.forEach(function(item) { addOrderRow(item); });
-                }
-            } else {
-                title.textContent = 'Nuevo Pedido Internacional Multi-Producto';
-                document.getElementById('ord-FECHA_PEDIDO').value = new Date().toISOString().split('T')[0];
-                addOrderRow();
-            }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function saveOrder() {
-            var rows = document.querySelectorAll('#ord-items-body tr');
-            var items = [];
-
-            rows.forEach(function(tr) {
-                var codeEl = tr.querySelector('.ord-row-codigo');
-                var code = codeEl ? codeEl.value.trim() : '';
-                if (code) {
-                    var prod = products.find(function(p) { return String(p.CODIGO).trim() === String(code).trim(); }) || {};
-                    var cPed = parseInt(tr.querySelector('.ord-row-cant-pedido').value, 10) || 0;
-                    var cEmb = parseInt(tr.querySelector('.ord-row-cant-embarcada').value, 10) || 0;
-                    
-                    items.push({
-                        codigo: code,
-                        alliance: prod.ALLIANCE || '',
-                        descripcion: prod.DESCRIPCION || '',
-                        modelo: prod.MODELO || '',
-                        precioCompra: parseFloat(tr.querySelector('.ord-row-precio').value) || 0,
-                        numFactura: tr.querySelector('.ord-row-numfactura').value.trim(),
-                        cantidadPedido: cPed,
-                        cantidadEmbarcada: cEmb,
-                        cantidadPendiente: Math.max(0, cPed - cEmb),
-                        estatus: tr.querySelector('.ord-row-estatus').value || 'Solicitado'
-                    });
-                }
-            });
-
-            if (items.length === 0) {
-                showToast('Debe agregar al menos un producto válido al pedido.', 'error');
-                return;
-            }
-
-            var payload = {
-                batchId: document.getElementById('ord-id').value,
-                fechaPedido: document.getElementById('ord-FECHA_PEDIDO').value,
-                numPedido: document.getElementById('ord-NUM_PEDIDO').value,
-                proveedor: document.getElementById('ord-PROVEEDOR').value,
-                items: items
-            };
-
-            showLoading('orders-loading', true);
-            fetchAPI('saveBatchOrders', payload)
-                .then(function(res) {
-                    showToast(res.message, 'success');
-                    closeModal('modal-order');
-                    loadOrders(function() { showLoading('orders-loading', false); });
-                })
-                .catch(function(err) {
-                    showToast(err.message, 'error');
-                    showLoading('orders-loading', false);
-                });
-        }
-
-        function clearOrderFilters() {
-            document.getElementById('filter-ord-date-from').value = '';
-            document.getElementById('filter-ord-date-to').value = '';
-            document.getElementById('filter-ord-num').value = '';
-            document.getElementById('filter-ord-code-fac').value = '';
-            document.getElementById('filter-ord-status').value = '';
-            renderOrders();
-        }
-
-        function switchTab(tab) {
-            currentTab = tab;
-            document.getElementById('content-dashboard').classList.toggle('hidden', tab !== 'dashboard');
-            document.getElementById('content-orders').classList.toggle('hidden', tab !== 'orders');
-            document.getElementById('content-products').classList.toggle('hidden', tab !== 'products');
-            document.getElementById('content-movements').classList.toggle('hidden', tab !== 'movements');
-            document.getElementById('content-clients').classList.toggle('hidden', tab !== 'clients');
-            document.getElementById('content-suppliers').classList.toggle('hidden', tab !== 'suppliers');
-            if (tab === 'dashboard') loadDashboard();
-            if (tab === 'orders') loadOrders();
-        }
-
-        function closeModal(id) {
-            var modal = document.getElementById(id);
-            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
         }
 
         function showLoading(id, show) {
@@ -1042,6 +255,12 @@
             toast.className = 'fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transform transition-all duration-300 z-[60] ' +
                 (type === 'error' ? 'bg-rose-600' : 'bg-emerald-600') + ' translate-y-0 opacity-100';
             setTimeout(function() { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
+
+        function switchTab(tab) {
+            document.getElementById('content-dashboard').classList.toggle('hidden', tab !== 'dashboard');
+            document.getElementById('content-orders').classList.toggle('hidden', tab !== 'orders');
+            if (tab === 'dashboard') loadDashboard();
         }
     </script>
 </body>
