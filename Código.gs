@@ -35,10 +35,6 @@ const ORDERS_HEADERS = [
   'NUM_FACTURA', 'CANTIDAD_EMBARCADA', 'CANTIDAD_PENDIENTE', 'ESTATUS'
 ];
 
-// ==========================================
-// HTTP ENDPOINTS (doGet y doPost)
-// ==========================================
-
 function doGet(e) {
   const action = e.parameter ? e.parameter.action : '';
   let result = {};
@@ -84,10 +80,6 @@ function doPost(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ==========================================
-// FUNCIONES DE APOYO Y NORMALIZACIÓN
-// ==========================================
-
 function getSheet(sheetName, headers) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(sheetName);
@@ -107,7 +99,6 @@ function rowToObject(headers, row) {
     let cleanHeader = String(header).trim().toUpperCase();
     let value = row[index];
     
-    // Normalización de ESTATUS LOGÍSTICO y CANTIDAD PENDIENTE
     if (cleanHeader === 'ESTATUS LOGÍSTICO' || cleanHeader === 'ESTATUS LOGISTICO' || cleanHeader === 'ESTATUS') {
       obj['ESTATUS'] = value !== undefined && value !== null && String(value).trim() !== '' ? String(value).trim() : 'Solicitado';
     } else if (cleanHeader === 'CANTIDAD PENDIENTE' || cleanHeader === 'CANTIDAD_PENDIENTE') {
@@ -125,10 +116,6 @@ function extractClientName(docField) {
   if (match && match[1]) return match[1].trim();
   return 'Cliente General';
 }
-
-// ==========================================
-// DASHBOARD & MÉTRICAS
-// ==========================================
 
 function getDashboardMetrics() {
   try {
@@ -211,10 +198,6 @@ function getDashboardMetrics() {
   }
 }
 
-// ==========================================
-// CONSULTAS (GETTERS)
-// ==========================================
-
 function getProducts() {
   const sheet = getSheet(SHEET_PRODUCTS, PRODUCTS_HEADERS);
   const data = sheet.getDataRange().getValues();
@@ -250,17 +233,13 @@ function getOrders() {
   return data.slice(1).map(row => rowToObject(data[0], row)).reverse();
 }
 
-// ==========================================
-// ACCIONES DE GUARDADO Y MODIFICACIÓN (SETTERS)
-// ==========================================
-
 function saveProduct(product) {
   const sheet = getSheet(SHEET_PRODUCTS, PRODUCTS_HEADERS);
   const data = sheet.getDataRange().getValues();
   const headers = data[0].map(h => String(h).trim().toUpperCase());
   const codigoIndex = headers.indexOf('CODIGO');
   
-  if (codigoIndex === -1) throw new Error('Columna CODIGO no encontrada en la hoja Productos');
+  if (codigoIndex === -1) throw new Error('Columna CODIGO no encontrada');
 
   let rowIndex = -1;
   for (let i = 1; i < data.length; i++) {
@@ -326,10 +305,8 @@ function registerBatchMovements(payload) {
     else if (payload.tipo === 'SALIDA') newStock = Math.max(0, currentStock - cant);
     else if (payload.tipo === 'AJUSTE') newStock = cant;
 
-    // Actualizar stock en la hoja Productos
     sheetProd.getRange(prodRowIdx, stockIdx + 1).setValue(newStock);
 
-    // Registrar en Movimientos
     sheetMov.appendRow([
       now,
       payload.tipo,
@@ -357,7 +334,6 @@ function saveBatchOrders(payload) {
   const headers = data[0].map(h => String(h).trim().toUpperCase());
   const idIndex = headers.indexOf('ID');
 
-  // Si se está editando un pedido existente, eliminar las filas viejas del mismo lote
   if (payload.batchId && idIndex !== -1) {
     for (let i = data.length - 1; i >= 1; i--) {
       if (String(data[i][idIndex]).trim() === String(payload.batchId).trim()) {
@@ -459,10 +435,6 @@ function saveSupplier(supplier) {
     return { success: true, message: 'Proveedor registrado correctamente' };
   }
 }
-
-// ==========================================
-// ELIMINACIÓN DE REGISTROS
-// ==========================================
 
 function deleteProduct(codigo) {
   const sheet = getSheet(SHEET_PRODUCTS, PRODUCTS_HEADERS);
