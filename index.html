@@ -105,7 +105,7 @@
             <div id="dashboard-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
             
             <div id="dashboard-content" class="space-y-6">
-                <!-- Tarjetas -->
+                <!-- Tarjetas KPIs -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-5 text-white shadow-lg shadow-blue-500/10">
                         <div class="flex justify-between items-start">
@@ -162,18 +162,35 @@
                         <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <i data-lucide="pie-chart" class="w-4 h-4 text-blue-600"></i> Estado del Stock
                         </h3>
-                        <div class="relative flex-1 flex items-center justify-center min-h-[200px]">
+                        <div class="relative flex-1 flex items-center justify-center min-h-[220px]">
                             <canvas id="chartStockStatus"></canvas>
                         </div>
                     </div>
 
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col justify-between">
                         <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-600"></i> Top 5 Productos Más Vendidos
                         </h3>
-                        <div class="relative h-[220px]">
+                        <div class="relative flex-1 min-h-[220px]">
                             <canvas id="chartTopProducts"></canvas>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Listados de Ranking -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Detalle de Ventas por Producto
+                        </h3>
+                        <div id="dash-top-products" class="space-y-4"></div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i data-lucide="award" class="w-4 h-4 text-purple-600"></i> Top Clientes (Monto Acumulado)
+                        </h3>
+                        <div id="dash-top-clients" class="space-y-4"></div>
                     </div>
                 </div>
             </div>
@@ -245,7 +262,7 @@
             <div id="orders-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
         </div>
 
-        <!-- Secciones adicionales: Productos, Movimientos, Clientes, Proveedores -->
+        <!-- Secciones Ocultas: Productos, Movimientos, Clientes, Proveedores -->
         <div id="content-products" class="hidden fade-in space-y-4">
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div class="relative w-full sm:w-80">
@@ -403,7 +420,7 @@
     <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transform transition-all duration-300 translate-y-20 opacity-0 z-[60]"></div>
 
     <script>
-        var API_URL = "https://script.google.com/macros/s/AKfycbyq3sAJO-1GEMKoCV_9DuKiknW0_NWLJ5Hd4LKV7fZ_9sXYwVPwWjM63bCd4bFqt4_HYQ/exec";
+        var API_URL = "https://script.google.com/macros/s/AKfycbxiIsgcTMwLwPSEHJVcGF8eyJp_DdojUc6XyENN-e_n634JwqF1ESmsVp5ReuppyCwt7A/exec";
 
         var products = [];
         var movements = [];
@@ -412,6 +429,9 @@
         var orders = [];
         var currentTab = 'dashboard';
         var LOW_STOCK = 5;
+
+        var stockChartInstance = null;
+        var topProductsChartInstance = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             if (window.lucide) lucide.createIcons();
@@ -455,12 +475,133 @@
                     document.getElementById('dash-valor-inventario').textContent = formatCurrency(metrics.valorTotalInventario || 0);
                     document.getElementById('dash-stock-bajo').textContent = metrics.productosStockBajo || 0;
                     document.getElementById('dash-total-movimientos').textContent = (metrics.totalEntradas || 0) + ' / ' + (metrics.totalSalidas || 0);
+
+                    // Dibujar gráficos interactivos
+                    renderDashboardCharts(metrics);
+
+                    // Listado Top Productos
+                    var topContainer = document.getElementById('dash-top-products');
+                    var topList = metrics.topProducts || [];
+
+                    if (topList.length === 0) {
+                        topContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">No hay ventas registradas.</p>';
+                    } else {
+                        var sales = topList.map(function(p) { return parseInt(p.TOTAL_VENTAS, 10) || 0; });
+                        var maxSales = Math.max.apply(Math, sales.concat([1]));
+                        topContainer.innerHTML = topList.map(function(p) {
+                            var totalVentas = parseInt(p.TOTAL_VENTAS, 10) || 0;
+                            var pct = Math.min(100, Math.round((totalVentas / maxSales) * 100));
+                            return '<div>' +
+                                '<div class="flex justify-between text-xs mb-1">' +
+                                    '<span class="font-medium text-slate-800">' + (p.DESCRIPCION || 'Sin descripción') + ' <span class="text-slate-400 font-mono text-[10px]">(' + (p.CODIGO || '-') + ')</span></span>' +
+                                    '<span class="font-bold text-slate-900">' + totalVentas + ' ud.</span>' +
+                                '</div>' +
+                                '<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">' +
+                                    '<div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style="width: ' + pct + '%"></div>' +
+                                '</div>' +
+                            '</div>';
+                        }).join('');
+                    }
+
+                    // Listado Top Clientes
+                    var topClientsContainer = document.getElementById('dash-top-clients');
+                    var topClientsList = metrics.topClients || [];
+
+                    if (topClientsList.length === 0) {
+                        topClientsContainer.innerHTML = '<p class="text-xs text-slate-400 py-2">No hay compras registradas por clientes.</p>';
+                    } else {
+                        var amounts = topClientsList.map(function(c) { return parseFloat(c.MONTO_TOTAL) || 0; });
+                        var maxAmount = Math.max.apply(Math, amounts.concat([1]));
+                        topClientsContainer.innerHTML = topClientsList.map(function(c) {
+                            var monto = parseFloat(c.MONTO_TOTAL) || 0;
+                            var pct = Math.min(100, Math.round((monto / maxAmount) * 100));
+                            return '<div>' +
+                                '<div class="flex justify-between text-xs mb-1">' +
+                                    '<span class="font-medium text-slate-800">' + (c.NOMBRE || 'Cliente General') + '</span>' +
+                                    '<span class="font-bold text-purple-700">' + formatCurrency(monto) + '</span>' +
+                                '</div>' +
+                                '<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">' +
+                                    '<div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full" style="width: ' + pct + '%"></div>' +
+                                '</div>' +
+                            '</div>';
+                        }).join('');
+                    }
+
                     showLoading('dashboard-loading', false);
+                    if (window.lucide) lucide.createIcons();
                 })
                 .catch(function(err) {
                     showToast(err.message, 'error');
                     showLoading('dashboard-loading', false);
                 });
+        }
+
+        function renderDashboardCharts(metrics) {
+            if (typeof Chart === 'undefined') return;
+
+            // 1. Gráfico Estado del Stock (Doughnut)
+            var elStock = document.getElementById('chartStockStatus');
+            if (elStock) {
+                var ctxStock = elStock.getContext('2d');
+                if (stockChartInstance) stockChartInstance.destroy();
+
+                stockChartInstance = new Chart(ctxStock, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Stock Normal', 'Stock Bajo (<=5)'],
+                        datasets: [{
+                            data: [metrics.productosStockNormal || 0, metrics.productosStockBajo || 0],
+                            backgroundColor: ['#10b981', '#f43f5e'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+
+            // 2. Gráfico Top Productos (Bar)
+            var elProducts = document.getElementById('chartTopProducts');
+            if (elProducts) {
+                var ctxProducts = elProducts.getContext('2d');
+                if (topProductsChartInstance) topProductsChartInstance.destroy();
+
+                var topProducts = metrics.topProducts || [];
+                var labels = topProducts.map(function(p) { return p.CODIGO || 'N/A'; });
+                var dataVentas = topProducts.map(function(p) { return p.TOTAL_VENTAS || 0; });
+
+                topProductsChartInstance = new Chart(ctxProducts, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Unidades Vendidas',
+                            data: dataVentas,
+                            backgroundColor: '#6366f1',
+                            borderRadius: 8,
+                            barThickness: 24
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { grid: { color: '#f1f5f9' }, beginAtZero: true }
+                        }
+                    }
+                });
+            }
         }
 
         function loadOrders(callback) {
@@ -597,7 +738,6 @@
                     else dateStr = cleanDate;
                 }
 
-                // Cálculo de totales agregados del lote
                 var totalPedidas = batch.items.reduce(function(sum, i) { return sum + (parseInt(i.CANTIDAD_PEDIDO || i.cantidadPedido, 10) || 0); }, 0);
                 var totalEmbarcadas = batch.items.reduce(function(sum, i) { return sum + (parseInt(i.CANTIDAD_EMBARCADA || i.cantidadEmbarcada, 10) || 0); }, 0);
                 var totalPendientes = Math.max(0, totalPedidas - totalEmbarcadas);
@@ -881,6 +1021,7 @@
             document.getElementById('content-movements').classList.toggle('hidden', tab !== 'movements');
             document.getElementById('content-clients').classList.toggle('hidden', tab !== 'clients');
             document.getElementById('content-suppliers').classList.toggle('hidden', tab !== 'suppliers');
+            if (tab === 'dashboard') loadDashboard();
             if (tab === 'orders') loadOrders();
         }
 
