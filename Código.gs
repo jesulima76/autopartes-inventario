@@ -1,6 +1,6 @@
 /**
  * AutoPartes Inventario - Backend API con Google Sheets
- * Archivo: Código.gs (VERSIÓN PROFESIONAL - CON EDICIÓN/ELIMINACIÓN DE MOVIMIENTOS)
+ * Archivo: Código.gs (VERSIÓN PROFESIONAL - CORREGIDO)
  */
 
 const SHEET_PRODUCTS = 'Productos';
@@ -225,10 +225,9 @@ function getMovements() {
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return [];
   
-  // Mapeamos agregando el índice real de la fila (ID) para poder editarlo/eliminarlo después
   return data.slice(1).map((row, index) => {
     var obj = rowToObject(data[0], row);
-    obj.ROW_ID = index + 2; // La fila 1 son los headers, entonces el index real es +2
+    obj.ROW_ID = index + 2;
     return obj;
   }).reverse();
 }
@@ -336,9 +335,10 @@ function registerBatchMovements(payload) {
   return { success: true, message: 'Movimientos registrados exitosamente' };
 }
 
-// === NUEVAS FUNCIONES PARA EDITAR/ELIMINAR MOVIMIENTOS ===
+// === FUNCIONES PARA EDITAR/ELIMINAR MOVIMIENTOS ===
 
-function deleteMovement(rowId) {
+function deleteMovement(payload) {
+  const rowId = payload.rowId;
   const sheet = getSheet(SHEET_MOVEMENTS, MOVEMENTS_HEADERS);
   const sheetProd = getSheet(SHEET_PRODUCTS, PRODUCTS_HEADERS);
   
@@ -349,7 +349,6 @@ function deleteMovement(rowId) {
   const codigo = movRow[2];
   const cantidad = parseInt(movRow[4], 10) || 0;
 
-  // 1. Revertir el stock en el producto
   const prodData = sheetProd.getDataRange().getValues();
   const prodHeaders = prodData[0].map(h => String(h).trim().toUpperCase());
   const codeIdx = prodHeaders.indexOf('CODIGO');
@@ -368,17 +367,15 @@ function deleteMovement(rowId) {
 
   if (prodRowIdx !== -1) {
     let revertedStock = currentStock;
-    if (tipo === 'ENTRADA') revertedStock = Math.max(0, currentStock - cantidad); // Revertir entrada = restar
-    else if (tipo === 'SALIDA') revertedStock = currentStock + cantidad; // Revertir salida = sumar
+    if (tipo === 'ENTRADA') revertedStock = Math.max(0, currentStock - cantidad); 
+    else if (tipo === 'SALIDA') revertedStock = currentStock + cantidad; 
     else if (tipo === 'AJUSTE') {
-      // Si fue un ajuste, no podemos saber el stock exacto anterior a menos que lo leamos del movimiento
       const stockAnterior = parseInt(movRow[5], 10) || 0;
       revertedStock = stockAnterior;
     }
     sheetProd.getRange(prodRowIdx, stockIdx + 1).setValue(revertedStock);
   }
 
-  // 2. Eliminar la fila
   sheet.deleteRow(rowId);
   return { success: true, message: 'Movimiento eliminado y stock revertido correctamente' };
 }
@@ -404,7 +401,6 @@ function updateMovement(payload) {
   const stockIdx = prodHeaders.indexOf('STOCK');
   const descIdx = prodHeaders.indexOf('DESCRIPCION');
 
-  // 1. Revertir el efecto del movimiento ANTIGUO
   let prodRowIdx = -1;
   for (let i = 1; i < prodData.length; i++) {
     if (String(prodData[i][codeIdx]).trim().toLowerCase() === String(oldCodigo).trim().toLowerCase()) {
@@ -423,10 +419,8 @@ function updateMovement(payload) {
     sheetProd.getRange(prodRowIdx, stockIdx + 1).setValue(stockAfterRevert);
   }
 
-  // Recargar productos para obtener el stock actualizado tras la reversión
   const updatedProdData = sheetProd.getDataRange().getValues();
   
-  // 2. Aplicar el NUEVO movimiento
   let newProdRowIdx = -1;
   let newCurrentStock = 0;
   let newDesc = '';
@@ -451,12 +445,10 @@ function updateMovement(payload) {
 
   sheetProd.getRange(newProdRowIdx, stockIdx + 1).setValue(newStockFinal);
 
-  // 3. Actualizar la fila del movimiento en la hoja
   const docRef = numFactura ? `${numFactura} (General)` : 'General';
-  const now = new Date();
   
   const updatedRow = [
-    movRow[0], // Mantenemos la fecha original
+    movRow[0],
     tipo,
     codigo,
     newDesc,
@@ -465,7 +457,7 @@ function updateMovement(payload) {
     newStockFinal,
     motivo || '',
     docRef,
-    movRow[9] || 'Admin' // Mantenemos el usuario
+    movRow[9] || 'Admin'
   ];
 
   sheet.getRange(rowId, 1, 1, MOVEMENTS_HEADERS.length).setValues([updatedRow]);
@@ -473,7 +465,7 @@ function updateMovement(payload) {
   return { success: true, message: 'Movimiento actualizado y stock recalculado correctamente' };
 }
 
-// === FIN NUEVAS FUNCIONES ===
+// === FIN FUNCIONES EDICIÓN ===
 
 function saveBatchOrders(payload) {
   if (!payload || !payload.items || payload.items.length === 0) {
