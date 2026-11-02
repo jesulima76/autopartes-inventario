@@ -20,7 +20,6 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        .low-stock { color: #ef4444; font-weight: 700; }
         .loader { border: 3px solid #e2e8f0; border-top: 3px solid #2563eb; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -162,7 +161,7 @@
             <div id="orders-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
         </div>
 
-        <!-- Productos con Cuadrícula y Fotos -->
+        <!-- Productos -->
         <div id="content-products" class="hidden fade-in space-y-4">
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -230,6 +229,7 @@
                             <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Nombre</th>
                             <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Email</th>
                             <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Teléfono</th>
+                            <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="clients-table-body" class="bg-white divide-y divide-slate-100"></tbody>
@@ -246,6 +246,7 @@
                             <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Nombre</th>
                             <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Teléfono</th>
                             <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Correo</th>
+                            <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="suppliers-table-body" class="bg-white divide-y divide-slate-100"></tbody>
@@ -253,6 +254,172 @@
             </div>
         </div>
     </main>
+
+    <!-- Modal Producto (Nuevo/Editar) -->
+    <div id="modal-product" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-4 fade-in">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h2 id="modal-product-title" class="text-base font-bold text-slate-900">Agregar / Editar Producto</h2>
+                <button onclick="closeModal('modal-product')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="form-product" onsubmit="event.preventDefault(); saveProduct();" class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1">Código *</label>
+                        <input type="text" id="prod-CODIGO" required class="w-full p-2 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Alliance</label>
+                        <input type="text" id="prod-ALLIANCE" class="w-full p-2 border rounded-xl">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Descripción *</label>
+                    <input type="text" id="prod-DESCRIPCION" required class="w-full p-2 border rounded-xl">
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1">Modelo</label>
+                        <input type="text" id="prod-MODELO" class="w-full p-2 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Grupo</label>
+                        <input type="text" id="prod-GRUPO" class="w-full p-2 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Stock *</label>
+                        <input type="number" id="prod-STOCK" required min="0" class="w-full p-2 border rounded-xl font-bold">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1">Precio Compra ($)</label>
+                        <input type="number" step="0.01" id="prod-PRECIO_COMPRA" class="w-full p-2 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Precio Venta ($)</label>
+                        <input type="number" step="0.01" id="prod-PRECIO_VENTA" class="w-full p-2 border rounded-xl">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">URL Imagen</label>
+                    <input type="url" id="prod-IMAGEN" placeholder="https://ejemplo.com/imagen.jpg" class="w-full p-2 border rounded-xl">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeModal('modal-product')" class="px-4 py-2 border rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Cliente -->
+    <div id="modal-client" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 fade-in">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h2 id="modal-client-title" class="text-base font-bold text-slate-900">Agregar / Editar Cliente</h2>
+                <button onclick="closeModal('modal-client')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="form-client" onsubmit="event.preventDefault(); saveClient();" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold mb-1">Nombre Completo *</label>
+                    <input type="text" id="cli-NOMBRE" required class="w-full p-2 border rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Correo Electrónico</label>
+                    <input type="email" id="cli-EMAIL" class="w-full p-2 border rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Teléfono</label>
+                    <input type="text" id="cli-TELEFONO1" class="w-full p-2 border rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Dirección</label>
+                    <input type="text" id="cli-DIRECCION" class="w-full p-2 border rounded-xl">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeModal('modal-client')" class="px-4 py-2 border rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-xl font-bold">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Proveedor -->
+    <div id="modal-supplier" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 fade-in">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h2 id="modal-supplier-title" class="text-base font-bold text-slate-900">Agregar / Editar Proveedor</h2>
+                <button onclick="closeModal('modal-supplier')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="form-supplier" onsubmit="event.preventDefault(); saveSupplier();" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold mb-1">Nombre Proveedor *</label>
+                    <input type="text" id="supp-NOMBRE" required class="w-full p-2 border rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Teléfono</label>
+                    <input type="text" id="supp-TELEFONO" class="w-full p-2 border rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Correo Electrónico</label>
+                    <input type="email" id="supp-CORREO" class="w-full p-2 border rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Dirección / Ubicación</label>
+                    <input type="text" id="supp-DIRECCION" class="w-full p-2 border rounded-xl">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeModal('modal-supplier')" class="px-4 py-2 border rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded-xl font-bold">Guardar Proveedor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Movimiento -->
+    <div id="modal-movement" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4 fade-in">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h2 class="text-base font-bold text-slate-900">Registrar Movimiento de Inventario</h2>
+                <button onclick="closeModal('modal-movement')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="form-movement" onsubmit="event.preventDefault(); saveMovement();" class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1">Tipo Movimiento *</label>
+                        <select id="mov-TIPO" required class="w-full p-2 border rounded-xl font-bold bg-white">
+                            <option value="ENTRADA">ENTRADA (+)</option>
+                            <option value="SALIDA">SALIDA (-)</option>
+                            <option value="AJUSTE">AJUSTE (FIJAR)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Código Producto *</label>
+                        <input type="text" id="mov-CODIGO" required placeholder="Código del repuesto" class="w-full p-2 border rounded-xl">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1">Cantidad *</label>
+                        <input type="number" id="mov-CANTIDAD" required min="1" value="1" class="w-full p-2 border rounded-xl font-bold">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">N° Factura / Doc.</label>
+                        <input type="text" id="mov-DOCUMENTO" placeholder="Ej: FAC-1002" class="w-full p-2 border rounded-xl">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Motivo / Cliente / Destino</label>
+                    <input type="text" id="mov-MOTIVO" placeholder="Razón del movimiento" class="w-full p-2 border rounded-xl">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeModal('modal-movement')" class="px-4 py-2 border rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold">Registrar Movimiento</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Modal Pedido Internacional Avanzado Multi-Producto -->
     <div id="modal-order" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
@@ -317,7 +484,7 @@
     <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transform transition-all duration-300 translate-y-20 opacity-0 z-[60]"></div>
 
     <script>
-        var API_URL = "https://script.google.com/macros/s/AKfycbztnhDBux6s85vgs_uoF89zNZ9rz7NTTxiRoUArLotw-LK13tSar0hXCofKEn44XfyyFQ/exec";
+        var API_URL = "https://script.google.com/macros/s/AKfycbxiIsgcTMwLwPSEHJVcGF8eyJp_DdojUc6XyENN-e_n634JwqF1ESmsVp5ReuppyCwt7A/exec";
 
         var products = [], movements = [], clients = [], suppliers = [], orders = [];
         var stockChartInstance = null, topProductsChartInstance = null;
@@ -376,6 +543,131 @@
 
         function loadProductsDataSilent() { fetchAPI('getProducts').then(d => { products = d || []; }).catch(()=>{}); }
         function loadOrdersDataSilent() { fetchAPI('getOrders').then(d => { orders = d || []; }).catch(()=>{}); }
+
+        // --- APERTURA DE MODALES DEL HEADER ---
+        function openProductModal(code = null) {
+            document.getElementById('form-product').reset();
+            document.getElementById('modal-product-title').textContent = code ? 'Editar Producto' : 'Nuevo Producto';
+            if (code) {
+                var p = products.find(x => String(x.CODIGO).trim() === String(code).trim());
+                if (p) {
+                    document.getElementById('prod-CODIGO').value = p.CODIGO || '';
+                    document.getElementById('prod-ALLIANCE').value = p.ALLIANCE || '';
+                    document.getElementById('prod-DESCRIPCION').value = p.DESCRIPCION || '';
+                    document.getElementById('prod-MODELO').value = p.MODELO || '';
+                    document.getElementById('prod-GRUPO').value = p.GRUPO || '';
+                    document.getElementById('prod-STOCK').value = p.STOCK || 0;
+                    document.getElementById('prod-PRECIO_COMPRA').value = p['PRECIO COMPRA ($)'] || 0;
+                    document.getElementById('prod-PRECIO_VENTA').value = p['PRECIO VENTA ($)'] || 0;
+                    document.getElementById('prod-IMAGEN').value = p.IMAGEN || '';
+                }
+            }
+            document.getElementById('modal-product').classList.remove('hidden');
+            document.getElementById('modal-product').classList.add('flex');
+        }
+
+        function openClientModal(nombre = null) {
+            document.getElementById('form-client').reset();
+            document.getElementById('modal-client-title').textContent = nombre ? 'Editar Cliente' : 'Nuevo Cliente';
+            if (nombre) {
+                var c = clients.find(x => String(x.NOMBRE).trim() === String(nombre).trim());
+                if (c) {
+                    document.getElementById('cli-NOMBRE').value = c.NOMBRE || '';
+                    document.getElementById('cli-EMAIL').value = c.EMAIL || '';
+                    document.getElementById('cli-TELEFONO1').value = c.TELEFONO1 || '';
+                    document.getElementById('cli-DIRECCION').value = c.DIRECCION || '';
+                }
+            }
+            document.getElementById('modal-client').classList.remove('hidden');
+            document.getElementById('modal-client').classList.add('flex');
+        }
+
+        function openSupplierModal(nombre = null) {
+            document.getElementById('form-supplier').reset();
+            document.getElementById('modal-supplier-title').textContent = nombre ? 'Editar Proveedor' : 'Nuevo Proveedor';
+            if (nombre) {
+                var s = suppliers.find(x => String(x.NOMBRE).trim() === String(nombre).trim());
+                if (s) {
+                    document.getElementById('supp-NOMBRE').value = s.NOMBRE || '';
+                    document.getElementById('supp-TELEFONO').value = s.TELEFONO || '';
+                    document.getElementById('supp-CORREO').value = s.CORREO || '';
+                    document.getElementById('supp-DIRECCION').value = s.DIRECCION || '';
+                }
+            }
+            document.getElementById('modal-supplier').classList.remove('hidden');
+            document.getElementById('modal-supplier').classList.add('flex');
+        }
+
+        function openMovementModal() {
+            document.getElementById('form-movement').reset();
+            document.getElementById('modal-movement').classList.remove('hidden');
+            document.getElementById('modal-movement').classList.add('flex');
+        }
+
+        // --- GUARDADO DE FORMULARIOS ---
+        function saveProduct() {
+            var payload = {
+                'CODIGO': document.getElementById('prod-CODIGO').value.trim(),
+                'ALLIANCE': document.getElementById('prod-ALLIANCE').value.trim(),
+                'DESCRIPCION': document.getElementById('prod-DESCRIPCION').value.trim(),
+                'MODELO': document.getElementById('prod-MODELO').value.trim(),
+                'GRUPO': document.getElementById('prod-GRUPO').value.trim(),
+                'STOCK': parseInt(document.getElementById('prod-STOCK').value, 10) || 0,
+                'PRECIO COMPRA ($)': parseFloat(document.getElementById('prod-PRECIO_COMPRA').value) || 0,
+                'PRECIO VENTA ($)': parseFloat(document.getElementById('prod-PRECIO_VENTA').value) || 0,
+                'IMAGEN': document.getElementById('prod-IMAGEN').value.trim()
+            };
+            fetchAPI('saveProduct', payload).then(res => {
+                showToast(res.message, 'success');
+                closeModal('modal-product');
+                loadProducts();
+            }).catch(e => showToast(e.message, 'error'));
+        }
+
+        function saveClient() {
+            var payload = {
+                'NOMBRE': document.getElementById('cli-NOMBRE').value.trim(),
+                'EMAIL': document.getElementById('cli-EMAIL').value.trim(),
+                'TELEFONO1': document.getElementById('cli-TELEFONO1').value.trim(),
+                'DIRECCION': document.getElementById('cli-DIRECCION').value.trim()
+            };
+            fetchAPI('saveClient', payload).then(res => {
+                showToast(res.message, 'success');
+                closeModal('modal-client');
+                loadClients();
+            }).catch(e => showToast(e.message, 'error'));
+        }
+
+        function saveSupplier() {
+            var payload = {
+                'NOMBRE': document.getElementById('supp-NOMBRE').value.trim(),
+                'TELEFONO': document.getElementById('supp-TELEFONO').value.trim(),
+                'CORREO': document.getElementById('supp-CORREO').value.trim(),
+                'DIRECCION': document.getElementById('supp-DIRECCION').value.trim()
+            };
+            fetchAPI('saveSupplier', payload).then(res => {
+                showToast(res.message, 'success');
+                closeModal('modal-supplier');
+                loadSuppliers();
+            }).catch(e => showToast(e.message, 'error'));
+        }
+
+        function saveMovement() {
+            var payload = {
+                tipo: document.getElementById('mov-TIPO').value,
+                motivo: document.getElementById('mov-MOTIVO').value.trim(),
+                numFactura: document.getElementById('mov-DOCUMENTO').value.trim(),
+                items: [{
+                    codigo: document.getElementById('mov-CODIGO').value.trim(),
+                    cantidad: parseInt(document.getElementById('mov-CANTIDAD').value, 10) || 1
+                }]
+            };
+            fetchAPI('registerBatchMovements', payload).then(res => {
+                showToast(res.message, 'success');
+                closeModal('modal-movement');
+                loadMovements();
+            }).catch(e => showToast(e.message, 'error'));
+        }
 
         function loadOrders() {
             showLoading('orders-loading', true);
@@ -572,6 +864,10 @@
                             <span class="font-bold text-blue-600">${formatCurrency(p['PRECIO VENTA ($)'])}</span>
                             <span class="px-2 py-0.5 rounded-full ${parseInt(p.STOCK,10) <= 5 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'} font-bold">Stock: ${p.STOCK}</span>
                         </div>
+                        <div class="flex justify-end gap-2 pt-2 border-t">
+                            <button onclick="openProductModal('${p.CODIGO}')" class="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold">Editar</button>
+                            <button onclick="deleteProduct('${p.CODIGO}')" class="px-2 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold">Eliminar</button>
+                        </div>
                     </div>
                 `).join('');
             } else {
@@ -587,11 +883,23 @@
                         <td class="p-3 text-xs">${p.DESCRIPCION}</td>
                         <td class="p-3 text-xs font-bold ${parseInt(p.STOCK,10) <= 5 ? 'text-rose-600' : ''}">${p.STOCK}</td>
                         <td class="p-3 text-xs font-bold text-blue-600">${formatCurrency(p['PRECIO VENTA ($)'])}</td>
-                        <td class="p-3 text-right text-xs"><button onclick="deleteProduct('${p.CODIGO}')" class="text-rose-600 font-bold">Eliminar</button></td>
+                        <td class="p-3 text-right text-xs">
+                            <button onclick="openProductModal('${p.CODIGO}')" class="text-blue-600 font-bold mr-2">Editar</button>
+                            <button onclick="deleteProduct('${p.CODIGO}')" class="text-rose-600 font-bold">Eliminar</button>
+                        </td>
                     </tr>
                 `).join('');
             }
             if (window.lucide) lucide.createIcons();
+        }
+
+        function deleteProduct(codigo) {
+            if (confirm('¿Desea eliminar el producto ' + codigo + '?')) {
+                fetchAPI('deleteProduct', codigo).then(res => {
+                    showToast(res.message, 'success');
+                    loadProducts();
+                }).catch(e => showToast(e.message, 'error'));
+            }
         }
 
         function loadMovements() { fetchAPI('getMovements').then(d => { movements = d || []; renderMovements(); }).catch(e => showToast(e.message, 'error')); }
@@ -603,13 +911,13 @@
         function loadClients() { fetchAPI('getClients').then(d => { clients = d || []; renderClients(); }).catch(e => showToast(e.message, 'error')); }
         function renderClients() {
             var tbody = document.getElementById('clients-table-body');
-            tbody.innerHTML = clients.map(c => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs font-bold">${c.NOMBRE}</td><td class="p-3 text-xs">${c.EMAIL || '-'}</td><td class="p-3 text-xs">${c.TELEFONO1 || '-'}</td></tr>`).join('');
+            tbody.innerHTML = clients.map(c => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs font-bold">${c.NOMBRE}</td><td class="p-3 text-xs">${c.EMAIL || '-'}</td><td class="p-3 text-xs">${c.TELEFONO1 || '-'}</td><td class="p-3 text-right text-xs"><button onclick="openClientModal('${c.NOMBRE}')" class="text-purple-600 font-bold">Editar</button></td></tr>`).join('');
         }
 
         function loadSuppliers() { fetchAPI('getSuppliers').then(d => { suppliers = d || []; renderSuppliers(); }).catch(e => showToast(e.message, 'error')); }
         function renderSuppliers() {
             var tbody = document.getElementById('suppliers-table-body');
-            tbody.innerHTML = suppliers.map(s => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs font-bold">${s.NOMBRE}</td><td class="p-3 text-xs">${s.TELEFONO || '-'}</td><td class="p-3 text-xs">${s.CORREO || '-'}</td></tr>`).join('');
+            tbody.innerHTML = suppliers.map(s => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs font-bold">${s.NOMBRE}</td><td class="p-3 text-xs">${s.TELEFONO || '-'}</td><td class="p-3 text-xs">${s.CORREO || '-'}</td><td class="p-3 text-right text-xs"><button onclick="openSupplierModal('${s.NOMBRE}')" class="text-amber-600 font-bold">Editar</button></td></tr>`).join('');
         }
 
         function switchTab(tab) {
