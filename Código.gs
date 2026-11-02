@@ -1,6 +1,6 @@
 /**
  * AutoPartes Inventario - Backend API con Google Sheets
- * Archivo: Código.gs
+ * Archivo: Código.gs (VERSIÓN PROFESIONAL)
  */
 
 const SHEET_PRODUCTS = 'Productos';
@@ -325,6 +325,7 @@ function saveBatchOrders(payload) {
   const headers = data[0].map(h => String(h).trim().toUpperCase());
   const idIndex = headers.indexOf('ID');
 
+  // Eliminar filas anteriores si es una edición
   if (payload.batchId && idIndex !== -1) {
     for (let i = data.length - 1; i >= 1; i--) {
       if (String(data[i][idIndex]).trim() === String(payload.batchId).trim()) {
@@ -336,7 +337,6 @@ function saveBatchOrders(payload) {
   const newBatchId = payload.batchId || ('ORD-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
   const newRows = [];
 
-  // Aquí iteramos sobre cada factura desglosada por producto
   payload.items.forEach(item => {
     const cantPedido = parseInt(item.cantidadPedido, 10) || 0;
     const cantEmbarcada = parseInt(item.cantidadEmbarcada, 10) || 0;
