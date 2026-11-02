@@ -1,6 +1,6 @@
 /**
  * AutoPartes Inventario - Backend API con Google Sheets
- * Archivo: Código.gs (VERSIÓN PROFESIONAL - CORREGIDO)
+ * Archivo: Código.gs (VERSIÓN PROFESIONAL)
  */
 
 const SHEET_PRODUCTS = 'Productos';
