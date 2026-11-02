@@ -35,6 +35,8 @@ const ORDERS_HEADERS = [
   'NUM_FACTURA', 'CANTIDAD_EMBARCADA', 'CANTIDAD_PENDIENTE', 'ESTATUS'
 ];
 
+// --- HTTP ENDPOINTS ---
+
 function doGet(e) {
   const action = e.parameter ? e.parameter.action : '';
   let result = {};
@@ -80,6 +82,8 @@ function doPost(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// --- HELPER FUNCTIONS ---
+
 function getSheet(sheetName, headers) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(sheetName);
@@ -116,6 +120,8 @@ function extractClientName(docField) {
   if (match && match[1]) return match[1].trim();
   return 'Cliente General';
 }
+
+// --- METRICAS Y CONSULTAS ---
 
 function getDashboardMetrics() {
   try {
@@ -233,6 +239,8 @@ function getOrders() {
   return data.slice(1).map(row => rowToObject(data[0], row)).reverse();
 }
 
+// --- OPERACIONES ---
+
 function saveProduct(product) {
   const sheet = getSheet(SHEET_PRODUCTS, PRODUCTS_HEADERS);
   const data = sheet.getDataRange().getValues();
@@ -308,16 +316,7 @@ function registerBatchMovements(payload) {
     sheetProd.getRange(prodRowIdx, stockIdx + 1).setValue(newStock);
 
     sheetMov.appendRow([
-      now,
-      payload.tipo,
-      item.codigo,
-      desc,
-      cant,
-      currentStock,
-      newStock,
-      payload.motivo || '',
-      docRef,
-      payload.usuario || 'Admin'
+      now, payload.tipo, item.codigo, desc, cant, currentStock, newStock, payload.motivo || '', docRef, payload.usuario || 'Admin'
     ]);
   });
 
