@@ -335,8 +335,6 @@ function registerBatchMovements(payload) {
   return { success: true, message: 'Movimientos registrados exitosamente' };
 }
 
-// === FUNCIONES PARA EDITAR/ELIMINAR MOVIMIENTOS ===
-
 function deleteMovement(payload) {
   const rowId = payload.rowId;
   const sheet = getSheet(SHEET_MOVEMENTS, MOVEMENTS_HEADERS);
@@ -464,8 +462,6 @@ function updateMovement(payload) {
 
   return { success: true, message: 'Movimiento actualizado y stock recalculado correctamente' };
 }
-
-// === FIN FUNCIONES EDICIÓN ===
 
 function saveBatchOrders(payload) {
   if (!payload || !payload.items || payload.items.length === 0) {
