@@ -33,9 +33,7 @@
         .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .glass-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
-        
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -48,282 +46,316 @@
         .invoice-row { display: grid; grid-template-columns: 2fr 1fr 1.5fr 1fr auto; gap: 0.5rem; padding: 0.5rem 1rem; border-bottom: 1px solid #f1f5f9; align-items: center; transition: background 0.15s; }
         .invoice-row:hover { background: #f8fafc; }
 
-        .tab-active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 700; }
-        .tab-inactive { color: #64748b; border-bottom-color: transparent; font-weight: 500; }
-        .tab-inactive:hover { color: #334155; border-bottom-color: #cbd5e1; }
+        /* Sidebar Navigation Styles */
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: #475569; transition: all 0.2s; cursor: pointer; }
+        .nav-item:hover { background-color: #f1f5f9; color: #1e293b; }
+        .nav-item.active { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
+        .nav-item.active svg { color: #2563eb; }
+        
+        .nav-section-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin: 1.5rem 0 0.5rem 1rem; }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="text-slate-800 antialiased h-screen flex overflow-hidden">
 
-    <!-- Header Navigation -->
-    <header class="glass-header sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <div class="flex items-center gap-4">
-                    <div class="bg-gradient-to-br from-brand-600 to-brand-900 text-white p-2.5 rounded-xl shadow-lg shadow-brand-500/30">
-                        <i data-lucide="wrench" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">AutoPartes <span class="text-xs px-2 py-1 rounded-md bg-brand-50 text-brand-600 border border-brand-100 uppercase tracking-widest font-bold">Pro</span></h1>
-                        <p class="text-[11px] text-slate-500 font-medium mt-0.5">Sistema de Gestión de Inventarios</p>
-                    </div>
+    <!-- Overlay para móvil -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col">
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-6 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-brand-600 to-brand-900 text-white p-1.5 rounded-lg shadow-md shadow-brand-500/30">
+                    <i data-lucide="wrench" class="w-5 h-5"></i>
                 </div>
-
-                <div class="flex gap-2.5">
-                    <button onclick="openOrderModal()" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
-                        <i data-lucide="plane-takeoff" class="w-4 h-4 text-brand-600"></i> <span class="hidden lg:inline">Nuevo Pedido</span>
-                    </button>
-                    <button onclick="openClientModal()" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
-                        <i data-lucide="user-plus" class="w-4 h-4 text-purple-600"></i> <span class="hidden lg:inline">Cliente</span>
-                    </button>
-                    <button onclick="openSupplierModal()" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
-                        <i data-lucide="truck" class="w-4 h-4 text-amber-600"></i> <span class="hidden lg:inline">Proveedor</span>
-                    </button>
-                    <div class="w-px h-8 bg-slate-200 mx-1 self-center hidden lg:block"></div>
-                    <button onclick="openProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-md shadow-brand-500/20">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Producto
-                    </button>
-                    <button onclick="openMovementModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-md shadow-emerald-500/20">
-                        <i data-lucide="arrow-right-left" class="w-4 h-4"></i> Movimiento
-                    </button>
+                <div>
+                    <h1 class="text-base font-extrabold text-slate-900 tracking-tight leading-none">AutoPartes <span class="text-[10px] px-1.5 py-0.5 rounded bg-brand-50 text-brand-600 border border-brand-100 uppercase tracking-widest font-bold ml-1">Pro</span></h1>
                 </div>
             </div>
         </div>
-    </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-        
-        <nav class="flex space-x-1 border-b border-slate-200 mb-8 overflow-x-auto pb-px">
-            <button id="tab-dashboard" onclick="switchTab('dashboard')" class="tab-active px-5 py-3 text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap">
+        <!-- Menú -->
+        <div class="flex-1 overflow-y-auto py-4 px-3 flex flex-col">
+            <div class="nav-section-title">Principal</div>
+            <div id="nav-dashboard" onclick="switchTab('dashboard')" class="nav-item active">
                 <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
-            </button>
-            <button id="tab-orders" onclick="switchTab('orders')" class="tab-inactive px-5 py-3 text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap">
-                <i data-lucide="globe-2" class="w-4 h-4"></i> Pedidos Internacionales
-            </button>
-            <button id="tab-products" onclick="switchTab('products')" class="tab-inactive px-5 py-3 text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap">
+            </div>
+            <div id="nav-orders" onclick="switchTab('orders')" class="nav-item">
+                <i data-lucide="globe-2" class="w-4 h-4"></i> Pedidos Int.
+            </div>
+            <div id="nav-products" onclick="switchTab('products')" class="nav-item">
                 <i data-lucide="boxes" class="w-4 h-4"></i> Inventario
-            </button>
-            <button id="tab-movements" onclick="switchTab('movements')" class="tab-inactive px-5 py-3 text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap">
+            </div>
+            <div id="nav-movements" onclick="switchTab('movements')" class="nav-item">
                 <i data-lucide="history" class="w-4 h-4"></i> Movimientos
-            </button>
-            <button id="tab-clients" onclick="switchTab('clients')" class="tab-inactive px-5 py-3 text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap">
+            </div>
+
+            <div class="nav-section-title">Gestión</div>
+            <div id="nav-clients" onclick="switchTab('clients')" class="nav-item">
                 <i data-lucide="users" class="w-4 h-4"></i> Clientes
-            </button>
-            <button id="tab-suppliers" onclick="switchTab('suppliers')" class="tab-inactive px-5 py-3 text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap">
+            </div>
+            <div id="nav-suppliers" onclick="switchTab('suppliers')" class="nav-item">
                 <i data-lucide="building" class="w-4 h-4"></i> Proveedores
-            </button>
-        </nav>
-
-        <!-- DASHBOARD -->
-        <div id="content-dashboard" class="fade-in space-y-6">
-            <div id="dashboard-loading" class="text-center py-20 hidden"><div class="loader mx-auto"></div></div>
-            <div id="dashboard-content" class="space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-white rounded-2xl p-6 shadow-soft border border-slate-100 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="package" class="w-16 h-16 text-brand-600"></i></div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Productos</p>
-                        <h3 id="dash-total-productos" class="text-3xl font-extrabold text-slate-900">0</h3>
-                        <p class="text-xs text-slate-500 mt-2 font-medium">SKUs registrados en el sistema</p>
-                    </div>
-                    <div class="bg-white rounded-2xl p-6 shadow-soft border border-slate-100 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="dollar-sign" class="w-16 h-16 text-emerald-600"></i></div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Valor Inventario</p>
-                        <h3 id="dash-valor-inventario" class="text-3xl font-extrabold text-slate-900">$0.00</h3>
-                        <p class="text-xs text-slate-500 mt-2 font-medium">Costo total del stock actual</p>
-                    </div>
-                    <div class="bg-white rounded-2xl p-6 shadow-soft border border-slate-100 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="alert-triangle" class="w-16 h-16 text-rose-600"></i></div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Stock Crítico</p>
-                        <h3 id="dash-stock-bajo" class="text-3xl font-extrabold text-rose-600">0</h3>
-                        <p class="text-xs text-slate-500 mt-2 font-medium">Productos con 5 o menos unidades</p>
-                    </div>
-                    <div class="bg-white rounded-2xl p-6 shadow-soft border border-slate-100 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="activity" class="w-16 h-16 text-purple-600"></i></div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Flujo de Inventario</p>
-                        <h3 id="dash-total-movimientos" class="text-2xl font-extrabold text-slate-900">0 / 0</h3>
-                        <p class="text-xs text-slate-500 mt-2 font-medium">Entradas / Salidas registradas</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-soft border border-slate-100">
-                        <h3 class="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <i data-lucide="pie-chart" class="w-4 h-4 text-brand-600"></i> Estado del Stock
-                        </h3>
-                        <div class="relative min-h-[250px]">
-                            <canvas id="chartStockStatus"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-soft border border-slate-100 lg:col-span-2">
-                        <h3 class="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <i data-lucide="trending-up" class="w-4 h-4 text-indigo-600"></i> Top 5 Productos Más Vendidos
-                        </h3>
-                        <div class="relative min-h-[250px]">
-                            <canvas id="chartTopProducts"></canvas>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <!-- PEDIDOS -->
-        <div id="content-orders" class="hidden fade-in space-y-4">
-            <div class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    <div class="relative">
-                        <i data-lucide="calendar" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                        <input type="date" id="filter-ord-date-from" onchange="renderOrders()" class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
-                    </div>
-                    <div class="relative">
-                        <i data-lucide="calendar" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                        <input type="date" id="filter-ord-date-to" onchange="renderOrders()" class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
-                    </div>
-                    <div class="relative">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                        <input type="text" id="filter-ord-num" oninput="renderOrders()" placeholder="N° Pedido..." class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
-                    </div>
-                    <div class="relative">
-                        <i data-lucide="file-text" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                        <input type="text" id="filter-ord-code-fac" oninput="renderOrders()" placeholder="Código / Factura..." class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
-                    </div>
-                    <select id="filter-ord-status" onchange="renderOrders()" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
-                        <option value="">Todos los Estatus</option>
-                        <option value="Solicitado">Solicitado</option>
-                        <option value="Facturado">Facturado</option>
-                        <option value="Embarcado">Embarcado</option>
-                        <option value="En puerto">En puerto</option>
-                        <option value="Nacionalización">Nacionalización</option>
-                        <option value="Despacho">Despacho</option>
-                        <option value="Entregado">Entregado</option>
-                        <option value="En inventario">En inventario</option>
-                    </select>
+        <!-- Footer Sidebar -->
+        <div class="p-4 border-t border-slate-100">
+            <button onclick="openMovementModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20">
+                <i data-lucide="arrow-right-left" class="w-4 h-4"></i> Registrar Movimiento
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden lg:pl-64">
+        
+        <!-- Top Header -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-30">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden text-slate-500 hover:text-slate-700 p-2">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="relative hidden sm:block w-64">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                    <input type="text" placeholder="Buscar..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
                 </div>
             </div>
             
-            <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50/80">
-                            <tr>
-                                <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Fecha / N° Pedido</th>
-                                <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Proveedor</th>
-                                <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Detalle Materiales & Facturas</th>
-                                <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Totales</th>
-                                <th class="px-6 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orders-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
+            <div class="flex items-center gap-3">
+                <button onclick="openOrderModal()" class="hidden sm:flex bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold items-center gap-2 transition-all shadow-sm">
+                    <i data-lucide="plane-takeoff" class="w-4 h-4"></i> Nuevo Pedido
+                </button>
+                <button onclick="openProductModal()" class="hidden sm:flex bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-xl text-xs font-semibold items-center gap-2 transition-all shadow-sm">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Producto
+                </button>
+                <div class="h-8 w-px bg-slate-200 mx-1"></div>
+                <div class="flex items-center gap-3 cursor-pointer">
+                    <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-xs border border-brand-200">
+                        AD
+                    </div>
+                    <div class="hidden md:block">
+                        <p class="text-xs font-bold text-slate-800 leading-tight">Admin</p>
+                        <p class="text-[10px] text-slate-500">Administrador</p>
+                    </div>
                 </div>
             </div>
-            <div id="orders-loading" class="text-center py-20 hidden"><div class="loader mx-auto"></div></div>
-        </div>
+        </header>
 
-        <!-- INVENTARIO -->
-        <div id="content-products" class="hidden fade-in space-y-4">
-            <div class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="relative w-full sm:w-96">
-                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                    <input type="text" id="search-products" oninput="renderProducts()" placeholder="Buscar repuesto por código o descripción..." class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
-                </div>
-                <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-                    <span id="product-count" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">0 productos</span>
-                    <div class="flex border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                        <button id="view-grid-btn" onclick="toggleProductView('grid')" class="px-3 py-2 bg-brand-50 text-brand-700 text-xs font-bold flex items-center gap-2 transition-colors">
-                            <i data-lucide="layout-grid" class="w-4 h-4"></i> Cuadrícula
-                        </button>
-                        <div class="w-px bg-slate-200"></div>
-                        <button id="view-list-btn" onclick="toggleProductView('list')" class="px-3 py-2 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold flex items-center gap-2 transition-colors">
-                            <i data-lucide="list" class="w-4 h-4"></i> Lista
-                        </button>
+        <!-- Contenido Dinámico -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50">
+            
+            <!-- DASHBOARD -->
+            <div id="content-dashboard" class="fade-in space-y-6 max-w-7xl mx-auto">
+                <div id="dashboard-loading" class="text-center py-20 hidden"><div class="loader mx-auto"></div></div>
+                <div id="dashboard-content" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-2xl p-6 shadow-soft border border-slate-100 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="package" class="w-16 h-16 text-brand-600"></i></div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Productos</p>
+                            <h3 id="dash-total-productos" class="text-3xl font-extrabold text-slate-900">0</h3>
+                            <p class="text-xs text-slate-500 mt-2 font-medium">SKUs registrados en el sistema</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 shadow-soft border border-slate-100 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="dollar-sign" class="w-16 h-16 text-emerald-600"></i></div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Valor Inventario</p>
+                            <h3 id="dash-valor-inventario" class="text-3xl font-extrabold text-slate-900">$0.00</h3>
+                            <p class="text-xs text-slate-500 mt-2 font-medium">Costo total del stock actual</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 shadow-soft border border-slate-100 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="alert-triangle" class="w-16 h-16 text-rose-600"></i></div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Stock Crítico</p>
+                            <h3 id="dash-stock-bajo" class="text-3xl font-extrabold text-rose-600">0</h3>
+                            <p class="text-xs text-slate-500 mt-2 font-medium">Productos con 5 o menos unidades</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 shadow-soft border border-slate-100 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="activity" class="w-16 h-16 text-purple-600"></i></div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Flujo de Inventario</p>
+                            <h3 id="dash-total-movimientos" class="text-2xl font-extrabold text-slate-900">0 / 0</h3>
+                            <p class="text-xs text-slate-500 mt-2 font-medium">Entradas / Salidas registradas</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl shadow-soft border border-slate-100">
+                            <h3 class="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="pie-chart" class="w-4 h-4 text-brand-600"></i> Estado del Stock
+                            </h3>
+                            <div class="relative min-h-[250px]">
+                                <canvas id="chartStockStatus"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-soft border border-slate-100 lg:col-span-2">
+                            <h3 class="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i data-lucide="trending-up" class="w-4 h-4 text-indigo-600"></i> Top 5 Productos Más Vendidos
+                            </h3>
+                            <div class="relative min-h-[250px]">
+                                <canvas id="chartTopProducts"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="products-grid-view" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"></div>
+            <!-- PEDIDOS -->
+            <div id="content-orders" class="hidden fade-in space-y-4 max-w-7xl mx-auto">
+                <div class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        <div class="relative">
+                            <i data-lucide="calendar" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                            <input type="date" id="filter-ord-date-from" onchange="renderOrders()" class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="calendar" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                            <input type="date" id="filter-ord-date-to" onchange="renderOrders()" class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                            <input type="text" id="filter-ord-num" oninput="renderOrders()" placeholder="N° Pedido..." class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="file-text" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                            <input type="text" id="filter-ord-code-fac" oninput="renderOrders()" placeholder="Código / Factura..." class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <select id="filter-ord-status" onchange="renderOrders()" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+                            <option value="">Todos los Estatus</option>
+                            <option value="Solicitado">Solicitado</option>
+                            <option value="Facturado">Facturado</option>
+                            <option value="Embarcado">Embarcado</option>
+                            <option value="En puerto">En puerto</option>
+                            <option value="Nacionalización">Nacionalización</option>
+                            <option value="Despacho">Despacho</option>
+                            <option value="Entregado">Entregado</option>
+                            <option value="En inventario">En inventario</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left">
+                            <thead class="bg-slate-50/80">
+                                <tr>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Fecha / N° Pedido</th>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Proveedor</th>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Detalle Materiales & Facturas</th>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Totales</th>
+                                    <th class="px-6 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="orders-loading" class="text-center py-20 hidden"><div class="loader mx-auto"></div></div>
+            </div>
 
-            <div id="products-list-view" class="hidden bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50/80">
-                            <tr>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Imagen</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Código</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Descripción</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Stock</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">P. Venta</th>
-                                <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="products-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
+            <!-- INVENTARIO -->
+            <div id="content-products" class="hidden fade-in space-y-4 max-w-7xl mx-auto">
+                <div class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="relative w-full sm:w-96">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                        <input type="text" id="search-products" oninput="renderProducts()" placeholder="Buscar repuesto por código o descripción..." class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                        <span id="product-count" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">0 productos</span>
+                        <div class="flex border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <button id="view-grid-btn" onclick="toggleProductView('grid')" class="px-3 py-2 bg-brand-50 text-brand-700 text-xs font-bold flex items-center gap-2 transition-colors">
+                                <i data-lucide="layout-grid" class="w-4 h-4"></i> Cuadrícula
+                            </button>
+                            <div class="w-px bg-slate-200"></div>
+                            <button id="view-list-btn" onclick="toggleProductView('list')" class="px-3 py-2 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold flex items-center gap-2 transition-colors">
+                                <i data-lucide="list" class="w-4 h-4"></i> Lista
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="products-grid-view" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"></div>
+
+                <div id="products-list-view" class="hidden bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left">
+                            <thead class="bg-slate-50/80">
+                                <tr>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Imagen</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Código</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Descripción</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Stock</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">P. Venta</th>
+                                    <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="products-loading" class="text-center py-20 hidden"><div class="loader mx-auto"></div></div>
+            </div>
+
+            <!-- MOVIMIENTOS -->
+            <div id="content-movements" class="hidden fade-in space-y-4 max-w-7xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left">
+                            <thead class="bg-slate-50/80">
+                                <tr>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tipo</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Código</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Cantidad</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Motivo / Doc</th>
+                                    <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movements-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <div id="products-loading" class="text-center py-20 hidden"><div class="loader mx-auto"></div></div>
-        </div>
 
-        <!-- MOVIMIENTOS -->
-        <div id="content-movements" class="hidden fade-in space-y-4">
-            <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50/80">
-                            <tr>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tipo</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Código</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Cantidad</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Motivo / Doc</th>
-                                <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="movements-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
+            <!-- CLIENTES -->
+            <div id="content-clients" class="hidden fade-in space-y-4 max-w-7xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left">
+                            <thead class="bg-slate-50/80">
+                                <tr>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nombre</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Teléfono</th>
+                                    <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clients-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- CLIENTES -->
-        <div id="content-clients" class="hidden fade-in space-y-4">
-            <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50/80">
-                            <tr>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nombre</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Email</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Teléfono</th>
-                                <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clients-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
+            <!-- PROVEEDORES -->
+            <div id="content-suppliers" class="hidden fade-in space-y-4 max-w-7xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left">
+                            <thead class="bg-slate-50/80">
+                                <tr>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nombre</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Teléfono</th>
+                                    <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Correo</th>
+                                    <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliers-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- PROVEEDORES -->
-        <div id="content-suppliers" class="hidden fade-in space-y-4">
-            <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50/80">
-                            <tr>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nombre</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Teléfono</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Correo</th>
-                                <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="suppliers-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <!-- MODALES -->
-    <div id="modal-product" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
+    <div id="modal-product" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col fade-in max-h-[90vh]">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
                 <h2 id="modal-product-title" class="text-lg font-bold text-slate-900">Agregar / Editar Producto</h2>
@@ -333,44 +365,44 @@
                 <div class="grid grid-cols-2 gap-5">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Código <span class="text-rose-500">*</span></label>
-                        <input type="text" id="prod-CODIGO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                        <input type="text" id="prod-CODIGO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Alliance</label>
-                        <input type="text" id="prod-ALLIANCE" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                        <input type="text" id="prod-ALLIANCE" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
                     </div>
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">Descripción <span class="text-rose-500">*</span></label>
-                    <input type="text" id="prod-DESCRIPCION" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                    <input type="text" id="prod-DESCRIPCION" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
                 </div>
                 <div class="grid grid-cols-3 gap-5">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Modelo</label>
-                        <input type="text" id="prod-MODELO" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                        <input type="text" id="prod-MODELO" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Grupo</label>
-                        <input type="text" id="prod-GRUPO" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                        <input type="text" id="prod-GRUPO" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Stock Inicial <span class="text-rose-500">*</span></label>
-                        <input type="number" id="prod-STOCK" required min="0" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl font-bold focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                        <input type="number" id="prod-STOCK" required min="0" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl font-bold focus:ring-2 focus:ring-brand-500 outline-none">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-5">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Precio Compra ($)</label>
-                        <input type="number" step="0.01" id="prod-PRECIO_COMPRA" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                        <input type="number" step="0.01" id="prod-PRECIO_COMPRA" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Precio Venta ($)</label>
-                        <input type="number" step="0.01" id="prod-PRECIO_VENTA" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                        <input type="number" step="0.01" id="prod-PRECIO_VENTA" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
                     </div>
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">URL Imagen</label>
-                    <input type="url" id="prod-IMAGEN" placeholder="https://ejemplo.com/imagen.jpg" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                    <input type="url" id="prod-IMAGEN" placeholder="https://ejemplo.com/imagen.jpg" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
                     <button type="button" onclick="closeModal('modal-product')" class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">Cancelar</button>
@@ -380,7 +412,7 @@
         </div>
     </div>
 
-    <div id="modal-client" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
+    <div id="modal-client" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col fade-in">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
                 <h2 id="modal-client-title" class="text-lg font-bold text-slate-900">Agregar / Editar Cliente</h2>
@@ -389,19 +421,19 @@
             <form id="form-client" onsubmit="event.preventDefault(); saveClient();" class="p-6 space-y-4 text-sm">
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">Nombre Completo <span class="text-rose-500">*</span></label>
-                    <input type="text" id="cli-NOMBRE" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                    <input type="text" id="cli-NOMBRE" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">Correo Electrónico</label>
-                    <input type="email" id="cli-EMAIL" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                    <input type="email" id="cli-EMAIL" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">Teléfono</label>
-                    <input type="text" id="cli-TELEFONO1" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                    <input type="text" id="cli-TELEFONO1" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">Dirección</label>
-                    <input type="text" id="cli-DIRECCION" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                    <input type="text" id="cli-DIRECCION" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none">
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
                     <button type="button" onclick="closeModal('modal-client')" class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">Cancelar</button>
@@ -411,7 +443,7 @@
         </div>
     </div>
 
-    <div id="modal-supplier" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
+    <div id="modal-supplier" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col fade-in">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
                 <h2 id="modal-supplier-title" class="text-lg font-bold text-slate-900">Agregar / Editar Proveedor</h2>
@@ -420,19 +452,19 @@
             <form id="form-supplier" onsubmit="event.preventDefault(); saveSupplier();" class="p-6 space-y-4 text-sm">
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">Nombre Proveedor <span class="text-rose-500">*</span></label>
-                    <input type="text" id="supp-NOMBRE" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all">
+                    <input type="text" id="supp-NOMBRE" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">Teléfono</label>
-                    <input type="text" id="supp-TELEFONO" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all">
+                    <input type="text" id="supp-TELEFONO" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">Correo Electrónico</label>
-                    <input type="email" id="supp-CORREO" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all">
+                    <input type="email" id="supp-CORREO" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1.5">Dirección / Ubicación</label>
-                    <input type="text" id="supp-DIRECCION" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all">
+                    <input type="text" id="supp-DIRECCION" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
                     <button type="button" onclick="closeModal('modal-supplier')" class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">Cancelar</button>
@@ -443,7 +475,7 @@
     </div>
 
     <!-- MODAL DE MOVIMIENTOS -->
-    <div id="modal-movement" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
+    <div id="modal-movement" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col fade-in">
             <div class="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
                 <div>
@@ -459,7 +491,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Tipo Movimiento <span class="text-rose-500">*</span></label>
-                        <select id="mov-TIPO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl font-bold bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
+                        <select id="mov-TIPO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl font-bold bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             <option value="ENTRADA">ENTRADA (+)</option>
                             <option value="SALIDA">SALIDA (-)</option>
                             <option value="AJUSTE">AJUSTE (FIJAR)</option>
@@ -467,11 +499,11 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">N° Factura / Documento</label>
-                        <input type="text" id="mov-DOCUMENTO" placeholder="Ej: FAC-1002" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
+                        <input type="text" id="mov-DOCUMENTO" placeholder="Ej: FAC-1002" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Motivo / Cliente / Destino</label>
-                        <input type="text" id="mov-MOTIVO" placeholder="Razón del movimiento" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
+                        <input type="text" id="mov-MOTIVO" placeholder="Razón del movimiento" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
                     </div>
                 </div>
 
@@ -529,7 +561,7 @@
         </div>
     </div>
 
-    <div id="modal-order" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
+    <div id="modal-order" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[94vh] flex flex-col fade-in">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
                 <div>
@@ -545,15 +577,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fecha Pedido <span class="text-rose-500">*</span></label>
-                        <input type="date" id="ord-FECHA_PEDIDO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all">
+                        <input type="date" id="ord-FECHA_PEDIDO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none">
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Número Pedido <span class="text-rose-500">*</span></label>
-                        <input type="text" id="ord-NUM_PEDIDO" required placeholder="Ej: N001-2026" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-semibold">
+                        <input type="text" id="ord-NUM_PEDIDO" required placeholder="Ej: N001-2026" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none font-semibold">
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Proveedor <span class="text-rose-500">*</span></label>
-                        <input type="text" id="ord-PROVEEDOR" list="suppliers-list" required placeholder="Selecciona o escribe..." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all">
+                        <input type="text" id="ord-PROVEEDOR" list="suppliers-list" required placeholder="Selecciona o escribe..." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none">
                         <datalist id="suppliers-list"></datalist>
                     </div>
                 </div>
@@ -581,7 +613,7 @@
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-6 right-6 px-6 py-4 rounded-xl text-white font-semibold text-sm shadow-2xl transform transition-all duration-300 translate-y-20 opacity-0 z-[60] flex items-center gap-3">
+    <div id="toast" class="fixed bottom-6 right-6 px-6 py-4 rounded-xl text-white font-semibold text-sm shadow-2xl transform transition-all duration-300 translate-y-20 opacity-0 z-[70] flex items-center gap-3">
         <i id="toast-icon" class="w-5 h-5"></i>
         <span id="toast-msg">Mensaje</span>
     </div>
@@ -602,7 +634,20 @@
             loadSuppliersDataSilent();
         });
 
-        // === UTILIDADES ===
+        // === UTILIDADES Y NAVEGACIÓN ===
+        function toggleSidebar() {
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('mobile-overlay');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
         function formatCurrency(val) {
             return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(val || 0);
         }
@@ -1104,7 +1149,6 @@
 
                 var fechaDisplay = formatDateForInput(batch.fechaPedido);
 
-                // FIX: Se usa comillas simples dobles para evitar conflictos con IDs que contienen guiones
                 return `<tr class="hover:bg-slate-50/80 transition-colors group">
                     <td class="px-6 py-4">
                         <div class="font-bold text-sm text-slate-900">${batch.numPedido || '-'}</div>
@@ -1604,22 +1648,26 @@
             if(window.lucide) lucide.createIcons();
         }
 
-        // === NAVEGACIÓN Y UTILIDADES ===
+        // === NAVEGACIÓN ===
         function switchTab(tab) {
             var tabs = ['dashboard', 'orders', 'products', 'movements', 'clients', 'suppliers'];
             
             tabs.forEach(t => {
                 var content = document.getElementById('content-' + t);
-                var btn = document.getElementById('tab-' + t);
+                var nav = document.getElementById('nav-' + t);
                 
                 if (t === tab) {
                     content.classList.remove('hidden');
-                    btn.className = 'tab-active px-5 py-3 text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap';
+                    if(nav) nav.className = 'nav-item active';
                 } else {
                     content.classList.add('hidden');
-                    btn.className = 'tab-inactive px-5 py-3 text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap';
+                    if(nav) nav.className = 'nav-item';
                 }
             });
+
+            if (window.innerWidth < 1024) {
+                toggleSidebar(); // Cierra el menú en móvil al cambiar de pestaña
+            }
 
             if (tab === 'dashboard') loadDashboard();
             if (tab === 'orders') loadOrders();
@@ -1647,10 +1695,10 @@
             msgEl.textContent = msg;
             
             if (type === 'error') {
-                toast.className = 'fixed bottom-6 right-6 px-6 py-4 rounded-xl text-white font-semibold text-sm shadow-2xl transform transition-all duration-300 translate-y-0 opacity-100 z-[60] flex items-center gap-3 bg-rose-600';
+                toast.className = 'fixed bottom-6 right-6 px-6 py-4 rounded-xl text-white font-semibold text-sm shadow-2xl transform transition-all duration-300 translate-y-0 opacity-100 z-[70] flex items-center gap-3 bg-rose-600';
                 icon.setAttribute('data-lucide', 'alert-circle');
             } else {
-                toast.className = 'fixed bottom-6 right-6 px-6 py-4 rounded-xl text-white font-semibold text-sm shadow-2xl transform transition-all duration-300 translate-y-0 opacity-100 z-[60] flex items-center gap-3 bg-slate-900';
+                toast.className = 'fixed bottom-6 right-6 px-6 py-4 rounded-xl text-white font-semibold text-sm shadow-2xl transform transition-all duration-300 translate-y-0 opacity-100 z-[70] flex items-center gap-3 bg-slate-900';
                 icon.setAttribute('data-lucide', 'check-circle');
             }
             
