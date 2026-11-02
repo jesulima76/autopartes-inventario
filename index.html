@@ -149,7 +149,7 @@
                 <table class="min-w-full divide-y divide-slate-200 text-left">
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">N° Pedido</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Fecha / N° Pedido</th>
                             <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Proveedor</th>
                             <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Detalle Materiales</th>
                             <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Totales</th>
@@ -159,28 +159,48 @@
                     <tbody id="orders-table-body" class="bg-white divide-y divide-slate-100"></tbody>
                 </table>
             </div>
+            <div id="orders-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
         </div>
 
-        <!-- Productos -->
+        <!-- Productos con Cuadrícula y Fotos -->
         <div id="content-products" class="hidden fade-in space-y-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
-                <input type="text" id="search-products" oninput="renderProducts()" placeholder="Buscar repuesto..." class="w-80 px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
-                <span id="product-count" class="text-xs font-semibold text-slate-500">0 productos</span>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <input type="text" id="search-products" oninput="renderProducts()" placeholder="Buscar repuesto..." class="w-full sm:w-80 px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex border border-slate-200 rounded-xl overflow-hidden">
+                        <button id="view-grid-btn" onclick="toggleProductView('grid')" class="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold flex items-center gap-1">
+                            <i data-lucide="layout-grid" class="w-4 h-4"></i> Cuadrícula
+                        </button>
+                        <button id="view-list-btn" onclick="toggleProductView('list')" class="px-3 py-1.5 text-slate-500 text-xs font-bold flex items-center gap-1 hover:bg-slate-50">
+                            <i data-lucide="list" class="w-4 h-4"></i> Lista
+                        </button>
+                    </div>
+                    <span id="product-count" class="text-xs font-semibold text-slate-500">0 productos</span>
+                </div>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+            <!-- Vista Cuadrícula -->
+            <div id="products-grid-view" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+
+            <!-- Vista Lista con Imagen -->
+            <div id="products-list-view" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <table class="min-w-full divide-y divide-slate-200 text-left">
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Código</th>
-                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Descripción</th>
-                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Stock</th>
-                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">P. Venta</th>
-                            <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
+                            <th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Imagen</th>
+                            <th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Código</th>
+                            <th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Descripción</th>
+                            <th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Stock</th>
+                            <th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase">P. Venta</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="products-table-body" class="bg-white divide-y divide-slate-100"></tbody>
                 </table>
             </div>
+            <div id="products-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
         </div>
 
         <!-- Movimientos -->
@@ -234,33 +254,61 @@
         </div>
     </main>
 
-    <!-- Modal Pedido -->
+    <!-- Modal Pedido Internacional Avanzado Multi-Producto -->
     <div id="modal-order" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h2 class="text-base font-bold text-slate-900">Pedido Internacional</h2>
-            <form id="form-order" onsubmit="event.preventDefault(); saveOrder();">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[94vh] flex flex-col fade-in">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h2 id="modal-order-title" class="text-base font-bold text-slate-900">Editar Pedido Internacional</h2>
+                <button onclick="closeModal('modal-order')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <form id="form-order" class="p-6 space-y-4 overflow-y-auto flex-1" onsubmit="event.preventDefault(); saveOrder();">
                 <input type="hidden" id="ord-id">
-                <div class="grid grid-cols-3 gap-3 mb-4">
-                    <input type="date" id="ord-FECHA_PEDIDO" required class="px-3 py-1.5 border rounded-xl text-xs">
-                    <input type="text" id="ord-NUM_PEDIDO" required placeholder="N° Pedido" class="px-3 py-1.5 border rounded-xl text-xs">
-                    <input type="text" id="ord-PROVEEDOR" required placeholder="Proveedor" class="px-3 py-1.5 border rounded-xl text-xs">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Fecha Pedido *</label>
+                        <input type="date" id="ord-FECHA_PEDIDO" required class="w-full px-3 py-2 border rounded-xl text-xs bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Número Pedido *</label>
+                        <input type="text" id="ord-NUM_PEDIDO" required placeholder="Ej: N001-2026" class="w-full px-3 py-2 border rounded-xl text-xs bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Proveedor *</label>
+                        <input type="text" id="ord-PROVEEDOR" required placeholder="Nombre de proveedor" class="w-full px-3 py-2 border rounded-xl text-xs bg-white">
+                    </div>
                 </div>
-                <button type="button" onclick="addOrderRow()" class="bg-sky-50 text-sky-700 px-3 py-1.5 rounded-xl text-xs font-bold mb-3">+ Agregar Producto</button>
-                <table class="w-full text-left text-xs mb-4">
-                    <thead>
-                        <tr class="bg-slate-100">
-                            <th class="p-2">Código</th>
-                            <th class="p-2">Precio</th>
-                            <th class="p-2">Cant. Pedida</th>
-                            <th class="p-2">Cant. Embarcada</th>
-                            <th class="p-2">Estatus</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ord-items-body"></tbody>
-                </table>
-                <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeModal('modal-order')" class="px-4 py-2 border rounded-xl text-xs">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold">Guardar</button>
+
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-slate-700 uppercase">Detalle de Renglones</h3>
+                    <button type="button" onclick="addOrderRow()" class="bg-sky-50 text-sky-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 border border-sky-200">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Agregar Producto
+                    </button>
+                </div>
+
+                <div class="border border-slate-200 rounded-xl overflow-x-auto">
+                    <table class="w-full text-left min-w-[900px]">
+                        <thead class="bg-slate-100 text-[10px] text-slate-600 font-bold uppercase">
+                            <tr>
+                                <th class="p-3">Código *</th>
+                                <th class="p-3">Descripción</th>
+                                <th class="p-3 w-24">P. Compra ($)</th>
+                                <th class="p-3 w-28">N° Factura</th>
+                                <th class="p-3 w-20">Cant. Ped.</th>
+                                <th class="p-3 w-20">Cant. Emb.</th>
+                                <th class="p-3 w-20">Cant. Pend.</th>
+                                <th class="p-3 w-36">Estatus *</th>
+                                <th class="p-3 w-10 text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="ord-items-body" class="divide-y divide-slate-100 bg-white"></tbody>
+                    </table>
+                </div>
+
+                <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-order')" class="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-700">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-700 shadow-md shadow-sky-500/20">Guardar Pedido Completo</button>
                 </div>
             </form>
         </div>
@@ -269,19 +317,21 @@
     <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transform transition-all duration-300 translate-y-20 opacity-0 z-[60]"></div>
 
     <script>
-        var API_URL = "https://script.google.com/macros/s/AKfycbwM6mWDtjdWrAkWL8rZnAL4Pp2tCQVmSbivPgvj3FQe56qQQOLQlpviskjHnjVbpMos6g/exec";
+        var API_URL = "https://script.google.com/macros/s/AKfycbztnhDBux6s85vgs_uoF89zNZ9rz7NTTxiRoUArLotw-LK13tSar0hXCofKEn44XfyyFQ/exec";
 
         var products = [], movements = [], clients = [], suppliers = [], orders = [];
         var stockChartInstance = null, topProductsChartInstance = null;
+        var currentProductView = 'grid';
 
         document.addEventListener('DOMContentLoaded', function() {
             if (window.lucide) lucide.createIcons();
             loadDashboard();
             loadProductsDataSilent();
+            loadOrdersDataSilent();
         });
 
         function formatCurrency(val) {
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(val || 0);
         }
 
         async function fetchAPI(action, payload = null) {
@@ -311,7 +361,7 @@
             if (stockChartInstance) stockChartInstance.destroy();
             stockChartInstance = new Chart(ctxStock, {
                 type: 'doughnut',
-                data: { labels: ['Normal', 'Bajo'], datasets: [{ data: [metrics.productosStockNormal || 0, metrics.productosStockBajo || 0], backgroundColor: ['#10b981', '#f43f5e'] }] },
+                data: { labels: ['Normal', 'Bajo (<=5)'], datasets: [{ data: [metrics.productosStockNormal || 0, metrics.productosStockBajo || 0], backgroundColor: ['#10b981', '#f43f5e'] }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
@@ -325,35 +375,229 @@
         }
 
         function loadProductsDataSilent() { fetchAPI('getProducts').then(d => { products = d || []; }).catch(()=>{}); }
+        function loadOrdersDataSilent() { fetchAPI('getOrders').then(d => { orders = d || []; }).catch(()=>{}); }
 
         function loadOrders() {
-            fetchAPI('getOrders').then(d => { orders = d || []; renderOrders(); }).catch(e => showToast(e.message, 'error'));
+            showLoading('orders-loading', true);
+            fetchAPI('getOrders').then(d => { orders = d || []; renderOrders(); showLoading('orders-loading', false); }).catch(e => { showToast(e.message, 'error'); showLoading('orders-loading', false); });
         }
 
         function renderOrders() {
             var tbody = document.getElementById('orders-table-body');
             if (!orders.length) { tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Sin pedidos.</td></tr>'; return; }
-            tbody.innerHTML = orders.map(o => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-3 text-xs font-bold">${o.NUM_PEDIDO || '-'}</td>
-                    <td class="p-3 text-xs">${o.PROVEEDOR || '-'}</td>
-                    <td class="p-3 text-xs">${o.CODIGO} - ${o.DESCRIPCION || ''} (Ped: ${o.CANTIDAD_PEDIDO || 0}, Emb: ${o.CANTIDAD_EMBARCADA || 0}, Pend: ${Math.max(0, (o.CANTIDAD_PEDIDO || 0) - (o.CANTIDAD_EMBARCADA || 0))})</td>
-                    <td class="p-3 text-xs font-bold text-sky-700">${o.ESTATUS || 'Solicitado'}</td>
-                    <td class="p-3 text-right text-xs"><button onclick="openOrderModal('${o.ID}')" class="text-sky-600">Editar</button></td>
-                </tr>
-            `).join('');
+            
+            var grouped = {};
+            orders.forEach(o => {
+                var key = o.ID || (o.NUM_PEDIDO + '_' + o.FECHA_PEDIDO);
+                if (!grouped[key]) grouped[key] = { id: o.ID, numPedido: o.NUM_PEDIDO, fechaPedido: o.FECHA_PEDIDO, proveedor: o.PROVEEDOR, items: [] };
+                grouped[key].items.push(o);
+            });
+
+            tbody.innerHTML = Object.values(grouped).map(batch => {
+                var tPed = batch.items.reduce((s, i) => s + (parseInt(i.CANTIDAD_PEDIDO, 10) || 0), 0);
+                var tEmb = batch.items.reduce((s, i) => s + (parseInt(i.CANTIDAD_EMBARCADA, 10) || 0), 0);
+                var tPend = Math.max(0, tPed - tEmb);
+
+                var itemsHtml = batch.items.map(i => {
+                    var cantPed = parseInt(i.CANTIDAD_PEDIDO, 10) || 0;
+                    var cantEmb = parseInt(i.CANTIDAD_EMBARCADA, 10) || 0;
+                    var cantPend = Math.max(0, cantPed - cantEmb);
+                    return `<div class="text-[11px] border-b border-slate-100 py-1">
+                        <b>${i.CODIGO}</b> - ${i.DESCRIPCION || ''} | Ped: ${cantPed} | Emb: ${cantEmb} | Pend: <b class="text-amber-600">${cantPend}</b> | Estatus: <b>${i.ESTATUS || 'Solicitado'}</b>
+                    </div>`;
+                }).join('');
+
+                return `<tr class="hover:bg-slate-50">
+                    <td class="p-3 text-xs font-bold">${batch.numPedido || '-'}</td>
+                    <td class="p-3 text-xs">${batch.proveedor || '-'}</td>
+                    <td class="p-3 text-xs">${itemsHtml}</td>
+                    <td class="p-3 text-xs"><b>Ped: ${tPed}</b><br>Emb: ${tEmb}<br><span class="text-amber-600">Pend: ${tPend}</span></td>
+                    <td class="p-3 text-right text-xs"><button onclick="openOrderModal('${batch.id}')" class="text-sky-600 font-bold">Editar Lote</button></td>
+                </tr>`;
+            }).join('');
         }
 
-        function loadProducts() { fetchAPI('getProducts').then(d => { products = d || []; renderProducts(); }).catch(e => showToast(e.message, 'error')); }
+        function openOrderModal(batchId) {
+            document.getElementById('form-order').reset();
+            document.getElementById('ord-id').value = '';
+            document.getElementById('ord-items-body').innerHTML = '';
+
+            if (batchId) {
+                var batchItems = orders.filter(o => String(o.ID) === String(batchId));
+                if (batchItems.length) {
+                    var first = batchItems[0];
+                    document.getElementById('ord-id').value = first.ID;
+                    document.getElementById('ord-FECHA_PEDIDO').value = first.FECHA_PEDIDO ? String(first.FECHA_PEDIDO).split('T')[0] : '';
+                    document.getElementById('ord-NUM_PEDIDO').value = first.NUM_PEDIDO || '';
+                    document.getElementById('ord-PROVEEDOR').value = first.PROVEEDOR || '';
+                    batchItems.forEach(item => addOrderRow(item));
+                }
+            } else {
+                document.getElementById('ord-FECHA_PEDIDO').value = new Date().toISOString().split('T')[0];
+                addOrderRow();
+            }
+
+            document.getElementById('modal-order').classList.remove('hidden');
+            document.getElementById('modal-order').classList.add('flex');
+        }
+
+        function addOrderRow(itemData) {
+            var tbody = document.getElementById('ord-items-body');
+            var rowId = 'ord-row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+
+            var tr = document.createElement('tr');
+            tr.id = rowId;
+            tr.className = 'border-b border-slate-100 text-xs';
+            tr.innerHTML = `<td class="p-2">
+                <input type="text" required placeholder="Código" value="${itemData ? (itemData.CODIGO || '') : ''}" class="ord-row-codigo w-full p-1 border rounded">
+            </td>
+            <td class="p-2">
+                <input type="text" placeholder="Descripción" value="${itemData ? (itemData.DESCRIPCION || '') : ''}" class="ord-row-descripcion w-full p-1 border rounded">
+            </td>
+            <td class="p-2">
+                <input type="number" step="0.01" value="${itemData ? (itemData.PRECIO_COMPRA || 0) : 0}" class="ord-row-precio w-full p-1 border rounded">
+            </td>
+            <td class="p-2">
+                <input type="text" placeholder="Factura" value="${itemData ? (itemData.NUM_FACTURA || '') : ''}" class="ord-row-numfactura w-full p-1 border rounded">
+            </td>
+            <td class="p-2">
+                <input type="number" min="1" value="${itemData ? (itemData.CANTIDAD_PEDIDO || 1) : 1}" oninput="calcRowPending('${rowId}')" class="ord-row-cant-pedido w-full p-1 border rounded">
+            </td>
+            <td class="p-2">
+                <input type="number" min="0" value="${itemData ? (itemData.CANTIDAD_EMBARCADA || 0) : 0}" oninput="calcRowPending('${rowId}')" class="ord-row-cant-embarcada w-full p-1 border rounded">
+            </td>
+            <td class="p-2">
+                <input type="number" readonly value="0" class="ord-row-cant-pendiente w-full p-1 border rounded bg-slate-100 font-bold text-amber-700">
+            </td>
+            <td class="p-2">
+                <select class="ord-row-estatus w-full p-1 border rounded bg-white">
+                    <option value="Solicitado">Solicitado</option>
+                    <option value="Facturado">Facturado</option>
+                    <option value="Embarcado">Embarcado</option>
+                    <option value="En puerto">En puerto</option>
+                    <option value="Nacionalización">Nacionalización</option>
+                    <option value="Despacho">Despacho</option>
+                    <option value="Entregado">Entregado</option>
+                    <option value="En inventario">En inventario</option>
+                </select>
+            </td>
+            <td class="p-2 text-center">
+                <button type="button" onclick="removeOrderRow('${rowId}')" class="text-rose-500 font-bold">X</button>
+            </td>`;
+
+            tbody.appendChild(tr);
+            if (itemData && itemData.ESTATUS) tr.querySelector('.ord-row-estatus').value = itemData.ESTATUS;
+            calcRowPending(rowId);
+        }
+
+        function calcRowPending(rowId) {
+            var tr = document.getElementById(rowId);
+            if (!tr) return;
+            var cPed = parseInt(tr.querySelector('.ord-row-cant-pedido').value, 10) || 0;
+            var cEmb = parseInt(tr.querySelector('.ord-row-cant-embarcada').value, 10) || 0;
+            tr.querySelector('.ord-row-cant-pendiente').value = Math.max(0, cPed - cEmb);
+        }
+
+        function removeOrderRow(rowId) {
+            var el = document.getElementById(rowId);
+            if (el) el.remove();
+        }
+
+        function saveOrder() {
+            var rows = document.querySelectorAll('#ord-items-body tr');
+            var items = [];
+            rows.forEach(tr => {
+                var code = tr.querySelector('.ord-row-codigo').value.trim();
+                if (code) {
+                    var cPed = parseInt(tr.querySelector('.ord-row-cant-pedido').value, 10) || 0;
+                    var cEmb = parseInt(tr.querySelector('.ord-row-cant-embarcada').value, 10) || 0;
+                    items.push({
+                        codigo: code,
+                        descripcion: tr.querySelector('.ord-row-descripcion').value.trim(),
+                        precioCompra: parseFloat(tr.querySelector('.ord-row-precio').value) || 0,
+                        numFactura: tr.querySelector('.ord-row-numfactura').value.trim(),
+                        cantidadPedido: cPed,
+                        cantidadEmbarcada: cEmb,
+                        cantidadPendiente: Math.max(0, cPed - cEmb),
+                        estatus: tr.querySelector('.ord-row-estatus').value
+                    });
+                }
+            });
+
+            if (!items.length) { showToast('Agrega al menos un producto', 'error'); return; }
+
+            var payload = {
+                batchId: document.getElementById('ord-id').value,
+                fechaPedido: document.getElementById('ord-FECHA_PEDIDO').value,
+                numPedido: document.getElementById('ord-NUM_PEDIDO').value,
+                proveedor: document.getElementById('ord-PROVEEDOR').value,
+                items: items
+            };
+
+            showLoading('orders-loading', true);
+            fetchAPI('saveBatchOrders', payload).then(res => {
+                showToast(res.message, 'success');
+                closeModal('modal-order');
+                loadOrders();
+            }).catch(e => { showToast(e.message, 'error'); showLoading('orders-loading', false); });
+        }
+
+        function loadProducts() {
+            showLoading('products-loading', true);
+            fetchAPI('getProducts').then(d => { products = d || []; renderProducts(); showLoading('products-loading', false); }).catch(e => { showToast(e.message, 'error'); showLoading('products-loading', false); });
+        }
+
+        function toggleProductView(view) {
+            currentProductView = view;
+            document.getElementById('products-grid-view').classList.toggle('hidden', view !== 'grid');
+            document.getElementById('products-list-view').classList.toggle('hidden', view !== 'list');
+            renderProducts();
+        }
+
         function renderProducts() {
-            var tbody = document.getElementById('products-table-body');
-            tbody.innerHTML = products.map(p => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs font-bold">${p.CODIGO}</td><td class="p-3 text-xs">${p.DESCRIPCION}</td><td class="p-3 text-xs font-bold">${p.STOCK}</td><td class="p-3 text-xs">${formatCurrency(p['PRECIO VENTA ($)'])}</td><td class="p-3 text-right text-xs"><button onclick="deleteProduct('${p.CODIGO}')" class="text-rose-600">Eliminar</button></td></tr>`).join('');
+            var filter = (document.getElementById('search-products').value || '').toLowerCase();
+            var list = products.filter(p => (p.CODIGO || '').toLowerCase().includes(filter) || (p.DESCRIPCION || '').toLowerCase().includes(filter));
+            document.getElementById('product-count').textContent = list.length + ' productos';
+
+            if (currentProductView === 'grid') {
+                var grid = document.getElementById('products-grid-view');
+                grid.innerHTML = list.map(p => `
+                    <div class="bg-white border rounded-2xl p-4 shadow-sm space-y-2">
+                        <div class="h-36 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center border">
+                            ${p.IMAGEN ? `<img src="${p.IMAGEN}" class="object-cover h-full w-full">` : `<i data-lucide="image" class="w-8 h-8 text-slate-300"></i>`}
+                        </div>
+                        <div class="font-bold text-sm text-slate-900">${p.CODIGO}</div>
+                        <div class="text-xs text-slate-500 line-clamp-2">${p.DESCRIPCION}</div>
+                        <div class="flex justify-between items-center text-xs pt-2 border-t">
+                            <span class="font-bold text-blue-600">${formatCurrency(p['PRECIO VENTA ($)'])}</span>
+                            <span class="px-2 py-0.5 rounded-full ${parseInt(p.STOCK,10) <= 5 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'} font-bold">Stock: ${p.STOCK}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                var tbody = document.getElementById('products-table-body');
+                tbody.innerHTML = list.map(p => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3">
+                            <div class="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden border flex items-center justify-center">
+                                ${p.IMAGEN ? `<img src="${p.IMAGEN}" class="object-cover w-full h-full">` : `<i data-lucide="image" class="w-4 h-4 text-slate-300"></i>`}
+                            </div>
+                        </td>
+                        <td class="p-3 text-xs font-bold">${p.CODIGO}</td>
+                        <td class="p-3 text-xs">${p.DESCRIPCION}</td>
+                        <td class="p-3 text-xs font-bold ${parseInt(p.STOCK,10) <= 5 ? 'text-rose-600' : ''}">${p.STOCK}</td>
+                        <td class="p-3 text-xs font-bold text-blue-600">${formatCurrency(p['PRECIO VENTA ($)'])}</td>
+                        <td class="p-3 text-right text-xs"><button onclick="deleteProduct('${p.CODIGO}')" class="text-rose-600 font-bold">Eliminar</button></td>
+                    </tr>
+                `).join('');
+            }
+            if (window.lucide) lucide.createIcons();
         }
 
         function loadMovements() { fetchAPI('getMovements').then(d => { movements = d || []; renderMovements(); }).catch(e => showToast(e.message, 'error')); }
         function renderMovements() {
             var tbody = document.getElementById('movements-table-body');
-            tbody.innerHTML = movements.map(m => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs">${m.FECHA ? new Date(m.FECHA).toLocaleDateString() : '-'}</td><td class="p-3 text-xs font-bold">${m.TIPO}</td><td class="p-3 text-xs">${m.CODIGO}</td><td class="p-3 text-xs">${m.CANTIDAD}</td><td class="p-3 text-xs">${m.MOTIVO || '-'}</td></tr>`).join('');
+            tbody.innerHTML = movements.map(m => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs">${m.FECHA ? String(m.FECHA).split('T')[0] : '-'}</td><td class="p-3 text-xs font-bold">${m.TIPO}</td><td class="p-3 text-xs">${m.CODIGO}</td><td class="p-3 text-xs font-bold">${m.CANTIDAD}</td><td class="p-3 text-xs">${m.MOTIVO || '-'}</td></tr>`).join('');
         }
 
         function loadClients() { fetchAPI('getClients').then(d => { clients = d || []; renderClients(); }).catch(e => showToast(e.message, 'error')); }
@@ -380,21 +624,8 @@
             if (tab === 'suppliers') loadSuppliers();
         }
 
-        function openOrderModal(id) {
-            document.getElementById('modal-order').classList.remove('hidden');
-            document.getElementById('modal-order').classList.add('flex');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-            document.getElementById(id).classList.remove('flex');
-        }
-
-        function showLoading(id, show) {
-            var el = document.getElementById(id);
-            if (el) el.classList.toggle('hidden', !show);
-        }
-
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+        function showLoading(id, show) { var el = document.getElementById(id); if (el) el.classList.toggle('hidden', !show); }
         function showToast(msg, type) {
             var toast = document.getElementById('toast');
             toast.textContent = msg;
