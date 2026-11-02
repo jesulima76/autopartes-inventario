@@ -582,10 +582,21 @@
             return '';
         }
 
+        // FIX: fetchAPI ahora fuerza POST si hay payload
         async function fetchAPI(action, payload = null) {
-            let response = payload 
-                ? await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: action, payload: payload }) })
-                : await fetch(API_URL + '?action=' + action);
+            let options = {};
+            let url = API_URL;
+
+            if (payload !== null) {
+                options = {
+                    method: 'POST',
+                    body: JSON.stringify({ action: action, payload: payload })
+                };
+            } else {
+                url += '?action=' + action;
+            }
+
+            let response = await fetch(url, options);
             const data = await response.json();
             if (data.error) throw new Error(data.error);
             return data;
@@ -756,7 +767,6 @@
             document.getElementById('modal-movement-title').textContent = 'Editar Movimiento de Inventario';
             document.getElementById('mov-btn-save-text').textContent = 'Guardar Cambios';
             
-            // En edición solo permitimos modificar este único producto
             document.getElementById('mov-add-section').classList.add('hidden');
             
             var tbody = document.getElementById('mov-items-body');
@@ -856,13 +866,12 @@
             }
 
             if (isEditMovementMode) {
-                // Modo Edición: Solo enviamos 1 item
                 var tr = rows[0];
                 var code = tr.getAttribute('data-code');
                 var cant = parseInt(tr.querySelector('.mov-item-cant').value, 10) || 1;
 
                 var payload = {
-                    rowId: rowId,
+                    rowId: parseInt(rowId, 10),
                     tipo: tipo,
                     codigo: code,
                     cantidad: cant,
@@ -878,7 +887,6 @@
                 }).catch(e => showToast(e.message, 'error'));
 
             } else {
-                // Modo Nuevo: Enviamos lote
                 var items = [];
                 rows.forEach(tr => {
                     var code = tr.getAttribute('data-code');
@@ -904,7 +912,8 @@
 
         function deleteMovement(rowId) {
             if (confirm('¿Estás seguro de eliminar este movimiento? El stock del producto será ajustado automáticamente para mantener el inventario correcto.')) {
-                fetchAPI('deleteMovement', rowId).then(res => {
+                // FIX: Enviamos el rowId dentro de un objeto para que fetchAPI lo trate como POST
+                fetchAPI('deleteMovement', { rowId: parseInt(rowId, 10) }).then(res => {
                     showToast(res.message, 'success');
                     loadMovements();
                     loadProductsDataSilent();
