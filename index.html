@@ -71,14 +71,24 @@
             <button id="tab-orders" onclick="switchTab('orders')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
                 <i data-lucide="globe-2" class="w-4 h-4"></i> Pedidos Internacionales
             </button>
+            <button id="tab-products" onclick="switchTab('products')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
+                <i data-lucide="boxes" class="w-4 h-4"></i> Maestro de Productos
+            </button>
+            <button id="tab-movements" onclick="switchTab('movements')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
+                <i data-lucide="history" class="w-4 h-4"></i> Historial Movimientos
+            </button>
+            <button id="tab-clients" onclick="switchTab('clients')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
+                <i data-lucide="users" class="w-4 h-4"></i> Clientes
+            </button>
+            <button id="tab-suppliers" onclick="switchTab('suppliers')" class="px-5 py-3 text-xs font-semibold text-slate-500 hover:text-slate-800 focus:outline-none flex items-center gap-2">
+                <i data-lucide="building" class="w-4 h-4"></i> Proveedores
+            </button>
         </div>
 
         <!-- Dashboard Section -->
         <div id="content-dashboard" class="fade-in space-y-6">
             <div id="dashboard-loading" class="text-center py-10 hidden"><div class="loader"></div></div>
-            
             <div id="dashboard-content" class="space-y-6">
-                <!-- Tarjetas KPIs -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-5 text-white shadow-lg">
                         <p class="text-xs font-medium text-blue-100 uppercase">Total Productos</p>
@@ -98,7 +108,6 @@
                     </div>
                 </div>
 
-                <!-- Gráficos -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                         <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -108,7 +117,6 @@
                             <canvas id="chartStockStatus"></canvas>
                         </div>
                     </div>
-
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col justify-between">
                         <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-600"></i> Top 5 Productos Más Vendidos
@@ -123,124 +131,263 @@
 
         <!-- Pedidos Internacionales -->
         <div id="content-orders" class="hidden fade-in space-y-4">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">N° Pedido</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Proveedor</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Detalle</th>
-                                <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Totales</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orders-table-body" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <input type="date" id="filter-ord-date-from" onchange="renderOrders()" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
+                    <input type="date" id="filter-ord-date-to" onchange="renderOrders()" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
+                    <input type="text" id="filter-ord-num" oninput="renderOrders()" placeholder="N° Pedido..." class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
+                    <input type="text" id="filter-ord-code-fac" oninput="renderOrders()" placeholder="Código / Factura..." class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
+                    <select id="filter-ord-status" onchange="renderOrders()" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
+                        <option value="">TODOS</option>
+                        <option value="Solicitado">Solicitado</option>
+                        <option value="Facturado">Facturado</option>
+                        <option value="Embarcado">Embarcado</option>
+                    </select>
                 </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-slate-200 text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">N° Pedido</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Proveedor</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Detalle Materiales</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Totales</th>
+                            <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Productos -->
+        <div id="content-products" class="hidden fade-in space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
+                <input type="text" id="search-products" oninput="renderProducts()" placeholder="Buscar repuesto..." class="w-80 px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
+                <span id="product-count" class="text-xs font-semibold text-slate-500">0 productos</span>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-slate-200 text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Código</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Descripción</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Stock</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">P. Venta</th>
+                            <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Movimientos -->
+        <div id="content-movements" class="hidden fade-in space-y-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-slate-200 text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Fecha</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Tipo</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Código</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Cantidad</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movements-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Clientes -->
+        <div id="content-clients" class="hidden fade-in space-y-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-slate-200 text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Nombre</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Email</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Teléfono</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clients-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Proveedores -->
+        <div id="content-suppliers" class="hidden fade-in space-y-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-slate-200 text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Nombre</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Teléfono</th>
+                            <th class="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase">Correo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suppliers-table-body" class="bg-white divide-y divide-slate-100"></tbody>
+                </table>
             </div>
         </div>
     </main>
 
+    <!-- Modal Pedido -->
+    <div id="modal-order" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-base font-bold text-slate-900">Pedido Internacional</h2>
+            <form id="form-order" onsubmit="event.preventDefault(); saveOrder();">
+                <input type="hidden" id="ord-id">
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <input type="date" id="ord-FECHA_PEDIDO" required class="px-3 py-1.5 border rounded-xl text-xs">
+                    <input type="text" id="ord-NUM_PEDIDO" required placeholder="N° Pedido" class="px-3 py-1.5 border rounded-xl text-xs">
+                    <input type="text" id="ord-PROVEEDOR" required placeholder="Proveedor" class="px-3 py-1.5 border rounded-xl text-xs">
+                </div>
+                <button type="button" onclick="addOrderRow()" class="bg-sky-50 text-sky-700 px-3 py-1.5 rounded-xl text-xs font-bold mb-3">+ Agregar Producto</button>
+                <table class="w-full text-left text-xs mb-4">
+                    <thead>
+                        <tr class="bg-slate-100">
+                            <th class="p-2">Código</th>
+                            <th class="p-2">Precio</th>
+                            <th class="p-2">Cant. Pedida</th>
+                            <th class="p-2">Cant. Embarcada</th>
+                            <th class="p-2">Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ord-items-body"></tbody>
+                </table>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modal-order')" class="px-4 py-2 border rounded-xl text-xs">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transform transition-all duration-300 translate-y-20 opacity-0 z-[60]"></div>
 
     <script>
-        // PEGA AQUÍ LA NUEVA URL OBTENIDA EN EL PASO 2
-        var API_URL = "https://script.google.com/macros/s/AKfycbzY2y19tHtoYYsY8e1su8E4iZedh5MHNO8DgCpOsb3PnMi05na7tTOEMVKQdjy8O7sygA/exec";
+        var API_URL = "https://script.google.com/macros/s/AKfycbxiIsgcTMwLwPSEHJVcGF8eyJp_DdojUc6XyENN-e_n634JwqF1ESmsVp5ReuppyCwt7A/exec";
 
-        var stockChartInstance = null;
-        var topProductsChartInstance = null;
+        var products = [], movements = [], clients = [], suppliers = [], orders = [];
+        var stockChartInstance = null, topProductsChartInstance = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             if (window.lucide) lucide.createIcons();
             loadDashboard();
+            loadProductsDataSilent();
         });
 
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value || 0);
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
         }
 
         async function fetchAPI(action, payload = null) {
-            try {
-                let response;
-                if (payload) {
-                    response = await fetch(API_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: action, payload: payload })
-                    });
-                } else {
-                    response = await fetch(API_URL + '?action=' + action);
-                }
-                const data = await response.json();
-                if (data.error) throw new Error(data.error);
-                return data;
-            } catch (err) {
-                throw new Error(err.message || 'Error en comunicación con la API');
-            }
+            let response = payload 
+                ? await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: action, payload: payload }) })
+                : await fetch(API_URL + '?action=' + action);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            return data;
         }
 
         function loadDashboard() {
             showLoading('dashboard-loading', true);
-            fetchAPI('getDashboardMetrics')
-                .then(function(metrics) {
-                    document.getElementById('dash-total-productos').textContent = metrics.totalProductos || 0;
-                    document.getElementById('dash-valor-inventario').textContent = formatCurrency(metrics.valorTotalInventario || 0);
-                    document.getElementById('dash-stock-bajo').textContent = metrics.productosStockBajo || 0;
-                    document.getElementById('dash-total-movimientos').textContent = (metrics.totalEntradas || 0) + ' / ' + (metrics.totalSalidas || 0);
-
-                    renderDashboardCharts(metrics);
-                    showLoading('dashboard-loading', false);
-                })
-                .catch(function(err) {
-                    showToast(err.message, 'error');
-                    showLoading('dashboard-loading', false);
-                });
+            fetchAPI('getDashboardMetrics').then(function(metrics) {
+                document.getElementById('dash-total-productos').textContent = metrics.totalProductos || 0;
+                document.getElementById('dash-valor-inventario').textContent = formatCurrency(metrics.valorTotalInventario || 0);
+                document.getElementById('dash-stock-bajo').textContent = metrics.productosStockBajo || 0;
+                document.getElementById('dash-total-movimientos').textContent = (metrics.totalEntradas || 0) + ' / ' + (metrics.totalSalidas || 0);
+                renderDashboardCharts(metrics);
+                showLoading('dashboard-loading', false);
+            }).catch(function(err) { showToast(err.message, 'error'); showLoading('dashboard-loading', false); });
         }
 
         function renderDashboardCharts(metrics) {
             if (typeof Chart === 'undefined') return;
+            var ctxStock = document.getElementById('chartStockStatus').getContext('2d');
+            if (stockChartInstance) stockChartInstance.destroy();
+            stockChartInstance = new Chart(ctxStock, {
+                type: 'doughnut',
+                data: { labels: ['Normal', 'Bajo'], datasets: [{ data: [metrics.productosStockNormal || 0, metrics.productosStockBajo || 0], backgroundColor: ['#10b981', '#f43f5e'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
 
-            var elStock = document.getElementById('chartStockStatus');
-            if (elStock) {
-                var ctxStock = elStock.getContext('2d');
-                if (stockChartInstance) stockChartInstance.destroy();
+            var ctxProd = document.getElementById('chartTopProducts').getContext('2d');
+            if (topProductsChartInstance) topProductsChartInstance.destroy();
+            topProductsChartInstance = new Chart(ctxProd, {
+                type: 'bar',
+                data: { labels: (metrics.topProducts || []).map(p => p.CODIGO), datasets: [{ label: 'Ventas', data: (metrics.topProducts || []).map(p => p.TOTAL_VENTAS), backgroundColor: '#6366f1' }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
 
-                stockChartInstance = new Chart(ctxStock, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Stock Normal', 'Stock Bajo (<=5)'],
-                        datasets: [{
-                            data: [metrics.productosStockNormal || 0, metrics.productosStockBajo || 0],
-                            backgroundColor: ['#10b981', '#f43f5e'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
+        function loadProductsDataSilent() { fetchAPI('getProducts').then(d => { products = d || []; }).catch(()=>{}); }
 
-            var elProducts = document.getElementById('chartTopProducts');
-            if (elProducts) {
-                var ctxProducts = elProducts.getContext('2d');
-                if (topProductsChartInstance) topProductsChartInstance.destroy();
+        function loadOrders() {
+            fetchAPI('getOrders').then(d => { orders = d || []; renderOrders(); }).catch(e => showToast(e.message, 'error'));
+        }
 
-                var topProducts = metrics.topProducts || [];
-                var labels = topProducts.map(function(p) { return p.CODIGO || 'N/A'; });
-                var dataVentas = topProducts.map(function(p) { return p.TOTAL_VENTAS || 0; });
+        function renderOrders() {
+            var tbody = document.getElementById('orders-table-body');
+            if (!orders.length) { tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Sin pedidos.</td></tr>'; return; }
+            tbody.innerHTML = orders.map(o => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-3 text-xs font-bold">${o.NUM_PEDIDO || '-'}</td>
+                    <td class="p-3 text-xs">${o.PROVEEDOR || '-'}</td>
+                    <td class="p-3 text-xs">${o.CODIGO} - ${o.DESCRIPCION || ''} (Ped: ${o.CANTIDAD_PEDIDO || 0}, Emb: ${o.CANTIDAD_EMBARCADA || 0}, Pend: ${Math.max(0, (o.CANTIDAD_PEDIDO || 0) - (o.CANTIDAD_EMBARCADA || 0))})</td>
+                    <td class="p-3 text-xs font-bold text-sky-700">${o.ESTATUS || 'Solicitado'}</td>
+                    <td class="p-3 text-right text-xs"><button onclick="openOrderModal('${o.ID}')" class="text-sky-600">Editar</button></td>
+                </tr>
+            `).join('');
+        }
 
-                topProductsChartInstance = new Chart(ctxProducts, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Unidades Vendidas',
-                            data: dataVentas,
-                            backgroundColor: '#6366f1',
-                            borderRadius: 8
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
+        function loadProducts() { fetchAPI('getProducts').then(d => { products = d || []; renderProducts(); }).catch(e => showToast(e.message, 'error')); }
+        function renderProducts() {
+            var tbody = document.getElementById('products-table-body');
+            tbody.innerHTML = products.map(p => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs font-bold">${p.CODIGO}</td><td class="p-3 text-xs">${p.DESCRIPCION}</td><td class="p-3 text-xs font-bold">${p.STOCK}</td><td class="p-3 text-xs">${formatCurrency(p['PRECIO VENTA ($)'])}</td><td class="p-3 text-right text-xs"><button onclick="deleteProduct('${p.CODIGO}')" class="text-rose-600">Eliminar</button></td></tr>`).join('');
+        }
+
+        function loadMovements() { fetchAPI('getMovements').then(d => { movements = d || []; renderMovements(); }).catch(e => showToast(e.message, 'error')); }
+        function renderMovements() {
+            var tbody = document.getElementById('movements-table-body');
+            tbody.innerHTML = movements.map(m => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs">${m.FECHA ? new Date(m.FECHA).toLocaleDateString() : '-'}</td><td class="p-3 text-xs font-bold">${m.TIPO}</td><td class="p-3 text-xs">${m.CODIGO}</td><td class="p-3 text-xs">${m.CANTIDAD}</td><td class="p-3 text-xs">${m.MOTIVO || '-'}</td></tr>`).join('');
+        }
+
+        function loadClients() { fetchAPI('getClients').then(d => { clients = d || []; renderClients(); }).catch(e => showToast(e.message, 'error')); }
+        function renderClients() {
+            var tbody = document.getElementById('clients-table-body');
+            tbody.innerHTML = clients.map(c => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs font-bold">${c.NOMBRE}</td><td class="p-3 text-xs">${c.EMAIL || '-'}</td><td class="p-3 text-xs">${c.TELEFONO1 || '-'}</td></tr>`).join('');
+        }
+
+        function loadSuppliers() { fetchAPI('getSuppliers').then(d => { suppliers = d || []; renderSuppliers(); }).catch(e => showToast(e.message, 'error')); }
+        function renderSuppliers() {
+            var tbody = document.getElementById('suppliers-table-body');
+            tbody.innerHTML = suppliers.map(s => `<tr class="hover:bg-slate-50"><td class="p-3 text-xs font-bold">${s.NOMBRE}</td><td class="p-3 text-xs">${s.TELEFONO || '-'}</td><td class="p-3 text-xs">${s.CORREO || '-'}</td></tr>`).join('');
+        }
+
+        function switchTab(tab) {
+            ['dashboard', 'orders', 'products', 'movements', 'clients', 'suppliers'].forEach(t => {
+                document.getElementById('content-' + t).classList.toggle('hidden', t !== tab);
+            });
+            if (tab === 'dashboard') loadDashboard();
+            if (tab === 'orders') loadOrders();
+            if (tab === 'products') loadProducts();
+            if (tab === 'movements') loadMovements();
+            if (tab === 'clients') loadClients();
+            if (tab === 'suppliers') loadSuppliers();
+        }
+
+        function openOrderModal(id) {
+            document.getElementById('modal-order').classList.remove('hidden');
+            document.getElementById('modal-order').classList.add('flex');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
         }
 
         function showLoading(id, show) {
@@ -248,19 +395,11 @@
             if (el) el.classList.toggle('hidden', !show);
         }
 
-        function showToast(message, type) {
+        function showToast(msg, type) {
             var toast = document.getElementById('toast');
-            if (!toast) return;
-            toast.textContent = message;
-            toast.className = 'fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transform transition-all duration-300 z-[60] ' +
-                (type === 'error' ? 'bg-rose-600' : 'bg-emerald-600') + ' translate-y-0 opacity-100';
-            setTimeout(function() { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
-        }
-
-        function switchTab(tab) {
-            document.getElementById('content-dashboard').classList.toggle('hidden', tab !== 'dashboard');
-            document.getElementById('content-orders').classList.toggle('hidden', tab !== 'orders');
-            if (tab === 'dashboard') loadDashboard();
+            toast.textContent = msg;
+            toast.className = 'fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-xs shadow-xl transition-all duration-300 ' + (type === 'error' ? 'bg-rose-600' : 'bg-emerald-600') + ' translate-y-0 opacity-100';
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
     </script>
 </body>
