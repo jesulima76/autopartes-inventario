@@ -336,6 +336,7 @@ function saveBatchOrders(payload) {
   const newBatchId = payload.batchId || ('ORD-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
   const newRows = [];
 
+  // Aquí iteramos sobre cada factura desglosada por producto
   payload.items.forEach(item => {
     const cantPedido = parseInt(item.cantidadPedido, 10) || 0;
     const cantEmbarcada = parseInt(item.cantidadEmbarcada, 10) || 0;
@@ -347,9 +348,9 @@ function saveBatchOrders(payload) {
       'NUM_PEDIDO': payload.numPedido,
       'PROVEEDOR': payload.proveedor,
       'CODIGO': item.codigo,
-      'ALLIANCE': item.alliance,
+      'ALLIANCE': item.alliance || '',
       'DESCRIPCION': item.descripcion,
-      'MODELO': item.modelo,
+      'MODELO': item.modelo || '',
       'PRECIO_COMPRA': parseFloat(item.precioCompra) || 0,
       'CANTIDAD_PEDIDO': cantPedido,
       'NUM_FACTURA': item.numFactura || '',
