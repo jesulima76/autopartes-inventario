@@ -441,14 +441,21 @@
         </div>
     </div>
 
+    <!-- MODAL DE MOVIMIENTOS ACTUALIZADO (Múltiples Productos) -->
     <div id="modal-movement" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col fade-in">
-            <div class="flex justify-between items-center p-6 border-b border-slate-100">
-                <h2 class="text-lg font-bold text-slate-900">Registrar Movimiento</h2>
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col fade-in">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Registrar Movimiento de Inventario</h2>
+                    <p class="text-xs text-slate-500 mt-1">Agregue múltiples productos a la misma factura o documento.</p>
+                </div>
                 <button onclick="closeModal('modal-movement')" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <form id="form-movement" onsubmit="event.preventDefault(); saveMovement();" class="p-6 space-y-4 text-sm">
-                <div class="grid grid-cols-2 gap-5">
+            
+            <form id="form-movement" onsubmit="event.preventDefault(); saveMovement();" class="p-6 space-y-6 overflow-y-auto flex-1 text-sm bg-slate-50/30">
+                
+                <!-- Cabecera del Movimiento -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1.5">Tipo Movimiento <span class="text-rose-500">*</span></label>
                         <select id="mov-TIPO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl font-bold bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
@@ -458,79 +465,67 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1.5">Código Producto <span class="text-rose-500">*</span></label>
-                        <select id="mov-CODIGO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
-                        </select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-5">
-                    <div>
-                        <label class="block font-semibold text-slate-700 mb-1.5">Cantidad <span class="text-rose-500">*</span></label>
-                        <input type="number" id="mov-CANTIDAD" required min="1" value="1" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl font-bold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-slate-700 mb-1.5">N° Factura / Doc.</label>
+                        <label class="block font-semibold text-slate-700 mb-1.5">N° Factura / Documento</label>
                         <input type="text" id="mov-DOCUMENTO" placeholder="Ej: FAC-1002" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
                     </div>
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-700 mb-1.5">Motivo / Cliente / Destino</label>
-                    <input type="text" id="mov-MOTIVO" placeholder="Razón del movimiento" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
-                </div>
-                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modal-movement')" class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">Cancelar</button>
-                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 shadow-md shadow-emerald-500/20 transition-all">Registrar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="modal-order" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay" style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[94vh] flex flex-col fade-in">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
-                <div>
-                    <h2 id="modal-order-title" class="text-lg font-bold text-slate-900">Editar Pedido Internacional</h2>
-                    <p class="text-xs text-slate-500 mt-1">Gestione los productos y el desglose de facturas por cada uno.</p>
-                </div>
-                <button onclick="closeModal('modal-order')" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            
-            <form id="form-order" class="p-6 space-y-6 overflow-y-auto flex-1 bg-slate-50/30" onsubmit="event.preventDefault(); saveOrder();">
-                <input type="hidden" id="ord-id">
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fecha Pedido <span class="text-rose-500">*</span></label>
-                        <input type="date" id="ord-FECHA_PEDIDO" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Número Pedido <span class="text-rose-500">*</span></label>
-                        <input type="text" id="ord-NUM_PEDIDO" required placeholder="Ej: N001-2026" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-semibold">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Proveedor <span class="text-rose-500">*</span></label>
-                        <input type="text" id="ord-PROVEEDOR" list="suppliers-list" required placeholder="Selecciona o escribe..." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all">
-                        <datalist id="suppliers-list"></datalist>
+                        <label class="block font-semibold text-slate-700 mb-1.5">Motivo / Cliente / Destino</label>
+                        <input type="text" id="mov-MOTIVO" placeholder="Razón del movimiento" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
                     </div>
                 </div>
 
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
-                            <i data-lucide="layers" class="w-4 h-4 text-brand-600"></i> Detalle de Productos
-                        </h3>
-                        <button type="button" onclick="addProductBlock()" class="bg-brand-50 text-brand-700 hover:bg-brand-100 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-brand-200 transition-colors">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Agregar Producto
+                <!-- Agregar Producto -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600"></i> Agregar Producto al Movimiento
+                    </h3>
+                    <div class="flex flex-col sm:flex-row gap-3 items-end">
+                        <div class="flex-1 w-full">
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Producto</label>
+                            <select id="mov-add-CODIGO" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <!-- Opciones dinámicas -->
+                            </select>
+                        </div>
+                        <div class="w-full sm:w-32">
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Cantidad</label>
+                            <input type="number" id="mov-add-CANTIDAD" min="1" value="1" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <button type="button" onclick="addMovementItem()" class="w-full sm:w-auto bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Añadir
                         </button>
                     </div>
-
-                    <div id="ord-products-container" class="space-y-4"></div>
                 </div>
 
-                <div class="pt-6 flex justify-end gap-3 border-t border-slate-200 mt-6">
-                    <button type="button" onclick="closeModal('modal-order')" class="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 shadow-md shadow-brand-500/20 transition-all flex items-center gap-2">
-                        <i data-lucide="save" class="w-4 h-4"></i> Guardar Pedido
+                <!-- Lista de Productos Agregados -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Código</th>
+                                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Descripción</th>
+                                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Stock Actual</th>
+                                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-24">Cantidad</th>
+                                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mov-items-body" class="divide-y divide-slate-100">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                        <tfoot id="mov-empty-state" class="bg-slate-50/50">
+                            <tr>
+                                <td colspan="5" class="px-4 py-6 text-center text-xs text-slate-400">
+                                    <i data-lucide="inbox" class="w-6 h-6 mx-auto mb-2 text-slate-300"></i>
+                                    No hay productos agregados al movimiento.
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="pt-4 flex justify-end gap-3 border-t border-slate-200 mt-6">
+                    <button type="button" onclick="closeModal('modal-movement')" class="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i> Registrar Movimiento
                     </button>
                 </div>
             </form>
@@ -562,16 +557,12 @@
             return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(val || 0);
         }
 
-        // === FIX CLAVE: FORMATO DE FECHA ROBUSTO ===
         function formatDateForInput(dateVal) {
             if (!dateVal) return '';
             try {
-                // Caso 1: Ya viene como "YYYY-MM-DD" o similar
                 if (typeof dateVal === 'string') {
                     var match = dateVal.match(/^(\d{4})-(\d{2})-(\d{2})/);
                     if (match) return match[1] + '-' + match[2] + '-' + match[3];
-                    
-                    // Intento parsear otros formatos comunes
                     var d = new Date(dateVal);
                     if (!isNaN(d.getTime())) {
                         var y = d.getFullYear();
@@ -581,7 +572,6 @@
                     }
                     return '';
                 }
-                // Caso 2: Es un objeto Date
                 if (dateVal instanceof Date && !isNaN(dateVal.getTime())) {
                     var y = dateVal.getFullYear();
                     var m = String(dateVal.getMonth() + 1).padStart(2, '0');
@@ -680,9 +670,9 @@
         }
 
         function updateProductSelects() {
-            var movSelect = document.getElementById('mov-CODIGO');
+            var movSelect = document.getElementById('mov-add-CODIGO');
             if (movSelect) {
-                movSelect.innerHTML = '<option value="">-- Seleccionar Producto --</option>' + 
+                movSelect.innerHTML = '<option value="">-- Seleccionar --</option>' + 
                     products.map(p => `<option value="${p.CODIGO}">${p.CODIGO} - ${p.DESCRIPCION || ''}</option>`).join('');
             }
         }
@@ -743,11 +733,107 @@
 
         function openMovementModal() {
             document.getElementById('form-movement').reset();
+            document.getElementById('mov-items-body').innerHTML = '';
+            document.getElementById('mov-empty-state').classList.remove('hidden');
             updateProductSelects();
             document.getElementById('modal-movement').classList.remove('hidden');
             document.getElementById('modal-movement').classList.add('flex');
         }
 
+        // === LÓGICA DE MOVIMIENTOS MÚLTIPLES ===
+        function addMovementItem() {
+            var code = document.getElementById('mov-add-CODIGO').value;
+            var cant = parseInt(document.getElementById('mov-add-CANTIDAD').value, 10) || 1;
+            
+            if (!code) { showToast('Seleccione un producto', 'error'); return; }
+            if (cant <= 0) { showToast('La cantidad debe ser mayor a 0', 'error'); return; }
+
+            var p = products.find(x => String(x.CODIGO).trim() === String(code).trim());
+            if (!p) return;
+
+            var tbody = document.getElementById('mov-items-body');
+            var emptyState = document.getElementById('mov-empty-state');
+            
+            // Validar si ya existe para no duplicar
+            var existingRow = tbody.querySelector(`tr[data-code="${code}"]`);
+            if (existingRow) {
+                showToast('El producto ya está en la lista', 'error');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            var tr = document.createElement('tr');
+            tr.setAttribute('data-code', code);
+            tr.className = 'hover:bg-slate-50 transition-colors';
+            tr.innerHTML = `
+                <td class="px-4 py-3 text-xs font-bold text-brand-700">${code}</td>
+                <td class="px-4 py-3 text-xs text-slate-600">${p.DESCRIPCION || ''}</td>
+                <td class="px-4 py-3 text-xs font-semibold">${p.STOCK}</td>
+                <td class="px-4 py-3">
+                    <input type="number" min="1" value="${cant}" class="mov-item-cant w-full px-2 py-1 border border-slate-200 rounded-md text-xs font-bold text-emerald-700 focus:ring-1 focus:ring-emerald-500 outline-none">
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <button type="button" onclick="this.closest('tr').remove(); checkMovementEmpty();" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition-colors">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            if (window.lucide) lucide.createIcons();
+            
+            // Limpiar inputs para el siguiente
+            document.getElementById('mov-add-CANTIDAD').value = 1;
+            document.getElementById('mov-add-CODIGO').value = '';
+        }
+
+        function checkMovementEmpty() {
+            var tbody = document.getElementById('mov-items-body');
+            var emptyState = document.getElementById('mov-empty-state');
+            if (tbody.children.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function saveMovement() {
+            var tipo = document.getElementById('mov-TIPO').value;
+            var motivo = document.getElementById('mov-MOTIVO').value.trim();
+            var numFactura = document.getElementById('mov-DOCUMENTO').value.trim();
+            
+            var rows = document.querySelectorAll('#mov-items-body tr');
+            if (rows.length === 0) {
+                showToast('Debe agregar al menos un producto al movimiento', 'error');
+                return;
+            }
+
+            var items = [];
+            rows.forEach(tr => {
+                var code = tr.getAttribute('data-code');
+                var cant = parseInt(tr.querySelector('.mov-item-cant').value, 10) || 1;
+                items.push({ codigo: code, cantidad: cant });
+            });
+
+            var payload = {
+                tipo: tipo,
+                motivo: motivo,
+                numFactura: numFactura,
+                items: items
+            };
+
+            showLoading('orders-loading', true); // Reutilizamos loader
+            fetchAPI('registerBatchMovements', payload).then(res => {
+                showToast(res.message, 'success');
+                closeModal('modal-movement');
+                loadMovements();
+                // Recargar productos para actualizar stock si el usuario va al inventario
+                loadProductsDataSilent();
+            }).catch(e => { showToast(e.message, 'error'); showLoading('orders-loading', false); });
+        }
+
+        // === GUARDAR CRUD ===
         function saveProduct() {
             var payload = {
                 'CODIGO': document.getElementById('prod-CODIGO').value.trim(),
@@ -796,23 +882,6 @@
             }).catch(e => showToast(e.message, 'error'));
         }
 
-        function saveMovement() {
-            var payload = {
-                tipo: document.getElementById('mov-TIPO').value,
-                motivo: document.getElementById('mov-MOTIVO').value.trim(),
-                numFactura: document.getElementById('mov-DOCUMENTO').value.trim(),
-                items: [{
-                    codigo: document.getElementById('mov-CODIGO').value,
-                    cantidad: parseInt(document.getElementById('mov-CANTIDAD').value, 10) || 1
-                }]
-            };
-            fetchAPI('registerBatchMovements', payload).then(res => {
-                showToast(res.message, 'success');
-                closeModal('modal-movement');
-                loadMovements();
-            }).catch(e => showToast(e.message, 'error'));
-        }
-
         // === PEDIDOS ===
         function loadOrders() {
             showLoading('orders-loading', true);
@@ -844,7 +913,6 @@
                 if (filterNum && !batch.numPedido.toLowerCase().includes(filterNum)) return false;
                 if (filterStatus && !batch.items.some(i => i.ESTATUS === filterStatus)) return false;
                 
-                // Comparación de fechas usando el formato seguro
                 var fDate = formatDateForInput(batch.fechaPedido);
                 if (filterDateFrom && fDate && fDate < filterDateFrom) return false;
                 if (filterDateTo && fDate && fDate > filterDateTo) return false;
@@ -896,7 +964,6 @@
                     </div>`;
                 }).join('');
 
-                // Uso del formateador seguro de fecha
                 var fechaDisplay = formatDateForInput(batch.fechaPedido);
 
                 return `<tr class="hover:bg-slate-50/80 transition-colors group">
@@ -940,7 +1007,6 @@
                     var first = batchItems[0];
                     document.getElementById('ord-id').value = first.ID;
                     
-                    // FIX: Uso del formateador robusto para el input date
                     var fechaFormateada = formatDateForInput(first.FECHA_PEDIDO);
                     document.getElementById('ord-FECHA_PEDIDO').value = fechaFormateada;
                     
