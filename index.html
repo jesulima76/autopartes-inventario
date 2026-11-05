@@ -53,6 +53,13 @@
         .nav-item.active svg { color: #2563eb; }
         
         .nav-section-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin: 1.5rem 0 0.5rem 1rem; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printable-report, #printable-report * { visibility: visible; }
+            #printable-report { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body class="text-slate-800 antialiased h-screen flex overflow-hidden">
@@ -96,6 +103,11 @@
             </div>
             <div id="nav-suppliers" onclick="switchTab('suppliers')" class="nav-item">
                 <i data-lucide="building" class="w-4 h-4"></i> Proveedores
+            </div>
+
+            <div class="nav-section-title">Análisis</div>
+            <div id="nav-reports" onclick="switchTab('reports')" class="nav-item">
+                <i data-lucide="file-bar-chart" class="w-4 h-4"></i> Reportes
             </div>
         </div>
 
@@ -350,6 +362,73 @@
                         </table>
                     </div>
                 </div>
+            </div>
+
+            <!-- REPORTES -->
+            <div id="content-reports" class="hidden fade-in space-y-6 max-w-7xl mx-auto">
+                <div class="bg-white p-6 rounded-2xl shadow-soft border border-slate-100">
+                    <h2 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5 text-brand-600"></i> Centro de Reportes
+                    </h2>
+                    <p class="text-xs text-slate-500 mb-6">Genere reportes detallados del estado del inventario para la toma de decisiones.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Tarjeta de Reporte de Stock Crítico -->
+                        <div class="border border-slate-200 rounded-2xl p-5 hover:border-rose-300 hover:shadow-md transition-all bg-slate-50/50 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-rose-100 text-rose-600 rounded-xl">
+                                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                                    </div>
+                                    <span class="text-[10px] uppercase font-bold tracking-wider bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full border border-rose-100">Prioridad Alta</span>
+                                </div>
+                                <h3 class="font-bold text-slate-800 text-base mb-1">Materiales con Stock Crítico</h3>
+                                <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                                    Lista consolidada de repuestos que están por debajo o igual al umbral mínimo de existencias de seguridad.
+                                </p>
+                                
+                                <div class="mb-4">
+                                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Umbral de Stock Máximo</label>
+                                    <input type="number" id="report-critical-threshold" value="5" min="0" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-rose-500 outline-none bg-white">
+                                </div>
+                            </div>
+                            
+                            <button onclick="generateCriticalStockReport()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-rose-500/20">
+                                <i data-lucide="eye" class="w-4 h-4"></i> Generar Reporte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visor de Resultados del Reporte -->
+                <div id="report-results-container" class="hidden bg-white rounded-2xl shadow-soft border border-slate-100 p-6 fade-in space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 id="report-title" class="text-base font-extrabold text-slate-900">Vista Previa de Reporte</h3>
+                            <p id="report-subtitle" class="text-xs text-slate-500 mt-1"></p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="exportReportCSV()" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all">
+                                <i data-lucide="download" class="w-4 h-4"></i> Exportar CSV
+                            </button>
+                            <button onclick="printReport()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
+                                <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Reporte
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="report-kpis" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+
+                    <div class="overflow-x-auto border border-slate-100 rounded-xl">
+                        <table class="min-w-full divide-y divide-slate-200 text-left">
+                            <thead class="bg-slate-50">
+                                <tr id="report-table-head"></tr>
+                            </thead>
+                            <tbody id="report-table-body" class="bg-white divide-y divide-slate-100 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="reports-loading" class="text-center py-20 hidden"><div class="loader mx-auto"></div></div>
             </div>
         </main>
     </div>
@@ -613,6 +692,29 @@
         </div>
     </div>
 
+    <!-- CONTENEDOR OCULTO PARA IMPRESIÓN DIRECTA -->
+    <div id="printable-report" class="hidden p-8 bg-white text-slate-900">
+        <div class="flex justify-between items-center border-b border-slate-300 pb-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold">AutoPartes Pro</h1>
+                <p class="text-xs text-slate-500">Reporte del Sistema de Inventario</p>
+            </div>
+            <div class="text-right">
+                <h2 id="print-report-title" class="text-lg font-bold text-slate-800"></h2>
+                <p id="print-report-date" class="text-xs text-slate-500"></p>
+            </div>
+        </div>
+
+        <div id="print-report-summary" class="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs"></div>
+
+        <table class="w-full text-left border-collapse border border-slate-200 text-xs">
+            <thead class="bg-slate-100 border-b border-slate-200">
+                <tr id="print-report-head"></tr>
+            </thead>
+            <tbody id="print-report-body" class="divide-y divide-slate-200"></tbody>
+        </table>
+    </div>
+
     <div id="toast" class="fixed bottom-6 right-6 px-6 py-4 rounded-xl text-white font-semibold text-sm shadow-2xl transform transition-all duration-300 translate-y-20 opacity-0 z-[70] flex items-center gap-3">
         <i id="toast-icon" class="w-5 h-5"></i>
         <span id="toast-msg">Mensaje</span>
@@ -622,6 +724,7 @@
         var API_URL = "https://script.google.com/macros/s/AKfycbztnhDBux6s85vgs_uoF89zNZ9rz7NTTxiRoUArLotw-LK13tSar0hXCofKEn44XfyyFQ/exec"; 
 
         var products = [], movements = [], clients = [], suppliers = [], orders = [];
+        var currentReportData = null;
         var stockChartInstance = null, topProductsChartInstance = null;
         var currentProductView = 'grid';
         var isEditMovementMode = false;
@@ -689,7 +792,7 @@
                     body: JSON.stringify({ action: action, payload: payload })
                 };
             } else {
-                url += '?action=' + action;
+                url += (url.includes('?') ? '&' : '?') + 'action=' + action;
             }
 
             let response = await fetch(url, options);
@@ -1648,9 +1751,142 @@
             if(window.lucide) lucide.createIcons();
         }
 
+        // === REPORTES ===
+        function generateCriticalStockReport() {
+            var threshold = document.getElementById('report-critical-threshold').value || 5;
+            showLoading('reports-loading', true);
+            document.getElementById('report-results-container').classList.add('hidden');
+
+            fetchAPI('getCriticalStockReport&threshold=' + threshold).then(res => {
+                currentReportData = res;
+                renderCriticalStockReport(res);
+                showLoading('reports-loading', false);
+            }).catch(e => {
+                showToast(e.message, 'error');
+                showLoading('reports-loading', false);
+            });
+        }
+
+        function renderCriticalStockReport(res) {
+            document.getElementById('report-title').textContent = 'Reporte de Materiales con Stock Crítico';
+            document.getElementById('report-subtitle').textContent = `Generado el: ${res.generatedAt} (Umbral <= ${res.threshold} unidades)`;
+
+            var kpis = document.getElementById('report-kpis');
+            kpis.innerHTML = `
+                <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl">
+                    <p class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Productos en Alerta</p>
+                    <h4 class="text-2xl font-black text-rose-700">${res.totalItems} SKUs</h4>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Valor Capital Comprometido</p>
+                    <h4 class="text-2xl font-black text-slate-800">${formatCurrency(res.valorTotalInvertido)}</h4>
+                </div>
+            `;
+
+            var thead = document.getElementById('report-table-head');
+            thead.innerHTML = `
+                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Código</th>
+                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Descripción</th>
+                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Modelo</th>
+                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Ubicación</th>
+                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-center">Stock Actual</th>
+                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">P. Compra</th>
+                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Valor Total</th>
+            `;
+
+            var tbody = document.getElementById('report-table-body');
+            if (!res.data.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">No hay productos en estado de stock crítico actualmente.</td></tr>';
+            } else {
+                tbody.innerHTML = res.data.map(p => `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="px-4 py-3 font-bold text-brand-700">${p.CODIGO}</td>
+                        <td class="px-4 py-3 font-medium text-slate-800">${p.DESCRIPCION}</td>
+                        <td class="px-4 py-3 text-slate-500">${p.MODELO || '-'}</td>
+                        <td class="px-4 py-3 text-slate-500">${p.UBICACIÓN || '-'}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 border border-rose-200">
+                                ${p.STOCK}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-right text-slate-600">${formatCurrency(p['PRECIO COMPRA ($)'])}</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-900">${formatCurrency(p.VALOR_INVENTARIO)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            document.getElementById('report-results-container').classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function exportReportCSV() {
+            if (!currentReportData || !currentReportData.data.length) {
+                showToast('No hay información para exportar', 'error');
+                return;
+            }
+
+            var csvRows = [];
+            csvRows.push(['CODIGO', 'DESCRIPCION', 'MODELO', 'UBICACION', 'STOCK', 'PRECIO COMPRA', 'VALOR TOTAL INVENTARIO']);
+
+            currentReportData.data.forEach(p => {
+                csvRows.push([
+                    `"${p.CODIGO}"`,
+                    `"${p.DESCRIPCION}"`,
+                    `"${p.MODELO || ''}"`,
+                    `"${p.UBICACIÓN || ''}"`,
+                    p.STOCK,
+                    p['PRECIO COMPRA ($)'],
+                    p.VALOR_INVENTARIO
+                ]);
+            });
+
+            var csvContent = "data:text/csv;charset=utf-8," + csvRows.map(e => e.join(",")).join("\n");
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Reporte_Stock_Critico_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function printReport() {
+            if (!currentReportData) return;
+
+            document.getElementById('print-report-title').textContent = 'Reporte de Materiales con Stock Crítico';
+            document.getElementById('print-report-date').textContent = 'Fecha: ' + currentReportData.generatedAt;
+            
+            document.getElementById('print-report-summary').innerHTML = `
+                <div><strong>Total ítems en crítico:</strong> ${currentReportData.totalItems}</div>
+                <div><strong>Capital comprometido:</strong> ${formatCurrency(currentReportData.valorTotalInvertido)}</div>
+            `;
+
+            document.getElementById('print-report-head').innerHTML = `
+                <th class="p-2 border border-slate-300">Código</th>
+                <th class="p-2 border border-slate-300">Descripción</th>
+                <th class="p-2 border border-slate-300">Modelo</th>
+                <th class="p-2 border border-slate-300 text-center">Stock</th>
+                <th class="p-2 border border-slate-300 text-right">P. Compra</th>
+                <th class="p-2 border border-slate-300 text-right">Valor Total</th>
+            `;
+
+            document.getElementById('print-report-body').innerHTML = currentReportData.data.map(p => `
+                <tr>
+                    <td class="p-2 border border-slate-300 font-bold">${p.CODIGO}</td>
+                    <td class="p-2 border border-slate-300">${p.DESCRIPCION}</td>
+                    <td class="p-2 border border-slate-300">${p.MODELO || '-'}</td>
+                    <td class="p-2 border border-slate-300 text-center font-bold text-rose-600">${p.STOCK}</td>
+                    <td class="p-2 border border-slate-300 text-right">${formatCurrency(p['PRECIO COMPRA ($)'])}</td>
+                    <td class="p-2 border border-slate-300 text-right font-bold">${formatCurrency(p.VALOR_INVENTARIO)}</td>
+                </tr>
+            `).join('');
+
+            window.print();
+        }
+
         // === NAVEGACIÓN ===
         function switchTab(tab) {
-            var tabs = ['dashboard', 'orders', 'products', 'movements', 'clients', 'suppliers'];
+            var tabs = ['dashboard', 'orders', 'products', 'movements', 'clients', 'suppliers', 'reports'];
             
             tabs.forEach(t => {
                 var content = document.getElementById('content-' + t);
