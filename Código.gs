@@ -1,6 +1,6 @@
 /**
  * AutoPartes Inventario - Backend API con Google Sheets
- * Archivo: Código.gs (VERSIÓN PROFESIONAL)
+ * Archivo: Código.gs (VERSIÓN PROFESIONAL CON REPORTES)
  */
 
 const SHEET_PRODUCTS = 'Productos';
@@ -57,6 +57,7 @@ function doGet(e) {
     else if (action === 'getSuppliers') result = getSuppliers();
     else if (action === 'getOrders') result = getOrders();
     else if (action === 'getMovements') result = getMovements();
+    else if (action === 'getCriticalStockReport') result = getCriticalStockReport(e.parameter.threshold);
     else result = { error: 'Acción GET no válida: ' + action };
   } catch (err) {
     result = { error: err.message };
@@ -211,6 +212,37 @@ function getDashboardMetrics() {
   } catch (error) {
     throw new Error('Error al calcular métricas: ' + error.message);
   }
+}
+
+function getCriticalStockReport(customThreshold) {
+  const threshold = customThreshold !== undefined && customThreshold !== '' ? parseInt(customThreshold, 10) : LOW_STOCK_THRESHOLD;
+  const products = getProducts();
+  const criticalProducts = products.filter(p => {
+    const stock = parseInt(p.STOCK, 10) || 0;
+    return stock <= threshold;
+  }).map(p => {
+    const stock = parseInt(p.STOCK, 10) || 0;
+    const precioCompra = parseFloat(p['PRECIO COMPRA ($)']) || 0;
+    const precioVenta = parseFloat(p['PRECIO VENTA ($)']) || 0;
+    return {
+      ...p,
+      STOCK: stock,
+      'PRECIO COMPRA ($)': precioCompra,
+      'PRECIO VENTA ($)': precioVenta,
+      VALOR_INVENTARIO: stock * precioCompra
+    };
+  }).sort((a, b) => a.STOCK - b.STOCK);
+
+  const totalItems = criticalProducts.length;
+  const valorTotalInvertido = criticalProducts.reduce((sum, p) => sum + p.VALOR_INVENTARIO, 0);
+
+  return {
+    threshold: threshold,
+    generatedAt: formatDateSafe(new Date()),
+    totalItems: totalItems,
+    valorTotalInvertido: valorTotalInvertido,
+    data: criticalProducts
+  };
 }
 
 function getProducts() {
