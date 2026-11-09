@@ -244,6 +244,10 @@
                 </div>
                 
                 <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50" id="orders-header-bar">
+                        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Listado de Pedidos</span>
+                        <div id="btn-print-invoice-container"></div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200 text-left">
                             <thead class="bg-slate-50/80">
@@ -1176,6 +1180,9 @@
 
         function renderOrders() {
             var tbody = document.getElementById('orders-table-body');
+            var printBtnContainer = document.getElementById('btn-print-invoice-container');
+            if (printBtnContainer) printBtnContainer.innerHTML = '';
+
             if (!orders.length) { 
                 tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400"><i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i><p class="text-sm font-medium">No hay pedidos registrados</p></td></tr>'; 
                 if(window.lucide) lucide.createIcons();
@@ -1212,6 +1219,14 @@
                 }
                 return true;
             });
+
+            if (filterCodeFac && printBtnContainer) {
+                printBtnContainer.innerHTML = `
+                    <button onclick="printInvoiceReport('${filterCodeFac.replace(/'/g, "\\'")}')" class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow-sm">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Factura (${filterCodeFac.toUpperCase()})
+                    </button>
+                `;
+            }
 
             if (!filteredList.length) {
                 tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400"><i data-lucide="search" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i><p class="text-sm font-medium">No se encontraron pedidos con esos filtros</p></td></tr>';
@@ -1279,6 +1294,61 @@
                 </tr>`;
             }).join('');
             if(window.lucide) lucide.createIcons();
+        }
+
+        function printInvoiceReport(query) {
+            if (!query) return;
+            var q = query.trim().toLowerCase();
+
+            var matchingItems = orders.filter(o => o.NUM_FACTURA && o.NUM_FACTURA.toLowerCase().includes(q));
+
+            if (!matchingItems.length) {
+                showToast('No se encontraron ítems asociados a la factura: ' + query, 'error');
+                return;
+            }
+
+            var exactFactura = matchingItems[0].NUM_FACTURA || query.toUpperCase();
+            var proveedor = matchingItems[0].PROVEEDOR || 'Varios';
+            var numPedido = matchingItems[0].NUM_PEDIDO || '-';
+
+            document.getElementById('print-report-title').textContent = 'Factura Internacional / Embarque';
+            document.getElementById('print-report-date').textContent = 'Factura N°: ' + exactFactura;
+
+            var totalPiezas = matchingItems.reduce((sum, item) => sum + (parseInt(item.CANTIDAD_EMBARCADA, 10) || 0), 0);
+            var totalMonto = matchingItems.reduce((sum, item) => sum + ((parseInt(item.CANTIDAD_EMBARCADA, 10) || 0) * (parseFloat(item.PRECIO_COMPRA) || 0)), 0);
+
+            document.getElementById('print-report-summary').innerHTML = `
+                <div><strong>N° Pedido Ref.:</strong> ${numPedido}</div>
+                <div><strong>Proveedor:</strong> ${proveedor}</div>
+                <div><strong>Total Unidades Embarcadas:</strong> ${totalPiezas}</div>
+                <div><strong>Monto Total Compra:</strong> ${formatCurrency(totalMonto)}</div>
+            `;
+
+            document.getElementById('print-report-head').innerHTML = `
+                <th class="p-2 border border-slate-300">Código</th>
+                <th class="p-2 border border-slate-300">Descripción</th>
+                <th class="p-2 border border-slate-300 text-center">Cant. Embarcada</th>
+                <th class="p-2 border border-slate-300 text-right">Precio Compra</th>
+                <th class="p-2 border border-slate-300 text-right">Subtotal</th>
+                <th class="p-2 border border-slate-300 text-center">Estatus</th>
+            `;
+
+            document.getElementById('print-report-body').innerHTML = matchingItems.map(item => {
+                var cantEmb = parseInt(item.CANTIDAD_EMBARCADA, 10) || 0;
+                var precio = parseFloat(item.PRECIO_COMPRA) || 0;
+                var subtotal = cantEmb * precio;
+                return `
+                <tr>
+                    <td class="p-2 border border-slate-300 font-bold">${item.CODIGO}</td>
+                    <td class="p-2 border border-slate-300">${item.DESCRIPCION || ''}</td>
+                    <td class="p-2 border border-slate-300 text-center font-bold text-emerald-700">${cantEmb}</td>
+                    <td class="p-2 border border-slate-300 text-right">${formatCurrency(precio)}</td>
+                    <td class="p-2 border border-slate-300 text-right font-bold">${formatCurrency(subtotal)}</td>
+                    <td class="p-2 border border-slate-300 text-center">${item.ESTATUS || 'Solicitado'}</td>
+                </tr>`;
+            }).join('');
+
+            window.print();
         }
 
         function openOrderModal(batchId) {
